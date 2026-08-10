@@ -1,0 +1,194 @@
+export interface OptionItem {
+  value: string;
+  label: string;
+}
+
+export const AGE_OPTIONS: OptionItem[] = [
+  { value: '< 12', label: '< 12 years' },
+  { value: '12 - 20', label: '12 - 20 years' }, // Fixed dataset artifact "20-Dec"
+  { value: '20 - 27', label: '20 - 27 years' },
+  { value: '27 - 35', label: '27 - 35 years' },
+  { value: '35 - 43', label: '35 - 43 years' },
+  { value: '43 - 51', label: '43 - 51 years' },
+  { value: '51 - 59', label: '51 - 59 years' },
+  { value: '59 - 66', label: '59 - 66 years' },
+  { value: '66 - 74', label: '66 - 74 years' },
+  { value: '≥ 74', label: '≥ 74 years' },
+];
+
+export const BP_LIMIT_OPTIONS: OptionItem[] = [
+  { value: '< 70', label: '< 70 mmHg (Low)' },
+  { value: '70 - 80', label: '70 - 80 mmHg (Normal)' },
+  { value: '80 - 90', label: '80 - 90 mmHg (Elevated)' },
+  { value: '≥ 90', label: '≥ 90 mmHg (High)' },
+];
+
+export const SG_OPTIONS: OptionItem[] = [
+  { value: '1.005', label: '1.005 (Very Low)' },
+  { value: '1.010', label: '1.010 (Low)' },
+  { value: '1.015', label: '1.015 (Mild Low)' },
+  { value: '1.020', label: '1.020 (Normal)' },
+  { value: '1.025', label: '1.025 (High Density)' },
+  { value: '≥ 1.023', label: '≥ 1.023 (High Concentrate)' },
+];
+
+export const ALBUMIN_OPTIONS: OptionItem[] = [
+  { value: 'Normal', label: 'Normal (0)' },
+  { value: '1', label: '1+ (Trace)' },
+  { value: '2', label: '2+ (Mild)' },
+  { value: '3', label: '3+ (Moderate)' },
+  { value: '≥ 4', label: '≥ 4+ (Severe)' },
+];
+
+export const SUGAR_OPTIONS: OptionItem[] = [
+  { value: 'Normal', label: 'Normal (0)' },
+  { value: '1', label: '1+ (100 mg/dL)' },
+  { value: '2', label: '2+ (250 mg/dL)' },
+  { value: '3', label: '3+ (500 mg/dL)' },
+  { value: '4', label: '4+ (1000 mg/dL)' },
+  { value: '≥ 4', label: '≥ 4+ (>1000 mg/dL)' },
+];
+
+export const RBC_OPTIONS: OptionItem[] = [
+  { value: 'Normal', label: 'Normal' },
+  { value: 'Abnormal', label: 'Abnormal' },
+];
+
+export const PC_OPTIONS: OptionItem[] = [
+  { value: 'Normal', label: 'Normal' },
+  { value: 'Abnormal', label: 'Abnormal' },
+];
+
+export const PCC_OPTIONS: OptionItem[] = [
+  { value: 'Not Present', label: 'Not Present' },
+  { value: 'Present', label: 'Present' },
+];
+
+export const BA_OPTIONS: OptionItem[] = [
+  { value: 'Not Present', label: 'Not Present' },
+  { value: 'Present', label: 'Present' },
+];
+
+export const BGR_OPTIONS: OptionItem[] = [
+  { value: '< 112', label: '< 112 mg/dL (Normal)' },
+  { value: '112 - 154', label: '112 - 154 mg/dL' },
+  { value: '154 - 196', label: '154 - 196 mg/dL' },
+  { value: '196 - 238', label: '196 - 238 mg/dL' },
+  { value: '≥ 238', label: '≥ 238 mg/dL (High)' },
+];
+
+export const BU_OPTIONS: OptionItem[] = [
+  { value: '< 34', label: '< 34 mg/dL (Normal)' },
+  { value: '34 - 76', label: '34 - 76 mg/dL' },
+  { value: '76 - 118', label: '76 - 118 mg/dL' },
+  { value: '118 - 160', label: '118 - 160 mg/dL' },
+  { value: '≥ 160', label: '≥ 160 mg/dL (Severely High)' },
+];
+
+export const SOD_OPTIONS: OptionItem[] = [
+  { value: '< 118', label: '< 118 mEq/L (Severe Hyponatremia)' },
+  { value: '118 - 123', label: '118 - 123 mEq/L' },
+  { value: '123 - 128', label: '123 - 128 mEq/L' },
+  { value: '128 - 133', label: '128 - 133 mEq/L' },
+  { value: '133 - 138', label: '133 - 138 mEq/L (Normal Low)' },
+  { value: '138 - 143', label: '138 - 143 mEq/L (Optimal)' },
+  { value: '143 - 148', label: '143 - 148 mEq/L (Normal High)' },
+  { value: '148 - 153', label: '148 - 153 mEq/L' },
+  { value: '≥ 158', label: '≥ 158 mEq/L (Hypernatremia)' },
+];
+
+export const SC_OPTIONS: OptionItem[] = [
+  { value: '< 1.2', label: '< 1.2 mg/dL (Normal)' },
+  { value: '1.2 - 2.5', label: '1.2 - 2.5 mg/dL (Mild Elevation)' },
+  { value: '2.5 - 4.8', label: '2.5 - 4.8 mg/dL (Moderate)' },
+  { value: '4.8 - 7.1', label: '4.8 - 7.1 mg/dL (Severe)' },
+  { value: '≥ 7.1', label: '≥ 7.1 mg/dL (Critical)' },
+];
+
+export const POT_OPTIONS: OptionItem[] = [
+  { value: '< 3.5', label: '< 3.5 mEq/L (Low)' },
+  { value: '3.5 - 4.5', label: '3.5 - 4.5 mEq/L (Optimal)' },
+  { value: '4.5 - 5.5', label: '4.5 - 5.5 mEq/L (Normal High)' },
+  { value: '≥ 5.5', label: '≥ 5.5 mEq/L (Hyperkalemia)' },
+];
+
+export const HEMO_OPTIONS: OptionItem[] = [
+  { value: '< 11.3', label: '< 11.3 g/dL (Anemic)' },
+  { value: '11.3 - 12.6', label: '11.3 - 12.6 g/dL' },
+  { value: '12.6 - 13.9', label: '12.6 - 13.9 g/dL' },
+  { value: '13.9 - 15.2', label: '13.9 - 15.2 g/dL (Normal)' },
+  { value: '15.2 - 16.5', label: '15.2 - 16.5 g/dL' },
+  { value: '≥ 16.5', label: '≥ 16.5 g/dL (High)' },
+];
+
+export const PCV_OPTIONS: OptionItem[] = [
+  { value: '< 33.5', label: '< 33.5 % (Low)' },
+  { value: '33.5 - 37.4', label: '33.5 - 37.4 %' },
+  { value: '37.4 - 41.3', label: '37.4 - 41.3 %' },
+  { value: '41.3 - 45.2', label: '41.3 - 45.2 % (Normal)' },
+  { value: '45.2 - 49.1', label: '45.2 - 49.1 %' },
+  { value: '≥ 49.1', label: '≥ 49.1 % (High)' },
+];
+
+export const RBCC_OPTIONS: OptionItem[] = [
+  { value: '< 3.87', label: '< 3.87 M/µL (Low)' },
+  { value: '3.87 - 4.46', label: '3.87 - 4.46 M/µL' },
+  { value: '4.46 - 5.05', label: '4.46 - 5.05 M/µL (Normal Low)' },
+  { value: '5.05 - 5.64', label: '5.05 - 5.64 M/µL (Optimal)' },
+  { value: '5.64 - 6.23', label: '5.64 - 6.23 M/µL' },
+  { value: '≥ 6.23', label: '≥ 6.23 M/µL (Elevated)' },
+];
+
+export const WBCC_OPTIONS: OptionItem[] = [
+  { value: '< 4980', label: '< 4980 cells/cumm (Low)' },
+  { value: '4980 - 7360', label: '4980 - 7360 cells/cumm (Normal)' },
+  { value: '7360 - 9740', label: '7360 - 9740 cells/cumm' },
+  { value: '9740 - 12120', label: '9740 - 12120 cells/cumm' },
+  { value: '≥ 12120', label: '≥ 12120 cells/cumm (Leukocytosis)' },
+];
+
+export const GFR_OPTIONS: OptionItem[] = [
+  { value: '< 15', label: '< 15 mL/min/1.73m² (Kidney Failure)' },
+  { value: '15 - 29', label: '15 - 29 mL/min/1.73m² (Severe Decrease)' },
+  { value: '30 - 59', label: '30 - 59 mL/min/1.73m² (Moderate Decrease)' },
+  { value: '60 - 89', label: '60 - 89 mL/min/1.73m² (Mild Decrease)' },
+  { value: '≥ 90', label: '≥ 90 mL/min/1.73m² (Normal/High)' },
+];
+
+export const STAGE_OPTIONS: OptionItem[] = [
+  { value: 'Stage 1', label: 'Stage 1 - Normal or High GFR (≥ 90)' },
+  { value: 'Stage 2', label: 'Stage 2 - Mildly Decreased GFR (60-89)' },
+  { value: 'Stage 3', label: 'Stage 3 - Moderately Decreased GFR (30-59)' },
+  { value: 'Stage 4', label: 'Stage 4 - Severely Decreased GFR (15-29)' },
+  { value: 'Stage 5', label: 'Stage 5 - Kidney Failure (< 15)' },
+];
+
+export const DEFAULT_PATIENT_INPUT = {
+  age: '59 - 66',
+  bp_diastolic: 76,
+  bp_limit: '70 - 80',
+  sg: '1.020',
+  al: 'Normal',
+  su: 'Normal',
+  rbc: 'Normal',
+  pc: 'Normal',
+  pcc: 'Not Present',
+  ba: 'Not Present',
+  bgr: '< 112',
+  bu: '< 34',
+  sod: '138 - 143',
+  sc: '< 1.2',
+  pot: '3.5 - 4.5',
+  hemo: '13.9 - 15.2',
+  pcv: '41.3 - 45.2',
+  rbcc: '5.05 - 5.64',
+  wbcc: '4980 - 7360',
+  gfr: '≥ 90',
+  htn: 'No',
+  dm: 'No',
+  cad: 'No',
+  appet: 'Good',
+  pe: 'No',
+  ane: 'No',
+  stage: 'Stage 1',
+};
