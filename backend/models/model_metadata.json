@@ -1,0 +1,14 @@
+{
+    "model_type": "Logistic Regression",
+    "target": "class",
+    "positive_class": "CKD",
+    "negative_class": "Not CKD",
+    "dataset_rows": 200,
+    "dataset_features": 28,
+    "cv_roc_auc": 1.0,
+    "test_accuracy": 1.0,
+    "test_precision": 1.0,
+    "test_recall": 1.0,
+    "test_f1": 1.0,
+    "shap_enabled": true
+}
