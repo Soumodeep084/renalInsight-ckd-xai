@@ -2,35 +2,37 @@ import React from 'react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, Cell } from 'recharts';
 import { FeatureImportance } from '../../types/ckd';
 import { Globe, Info } from 'lucide-react';
+import { MOCK_GLOBAL_FEATURE_IMPORTANCE } from '../../data/mockPrediction';
 
 interface FeatureImportanceChartProps {
-  data: FeatureImportance[];
+  data?: FeatureImportance[];
 }
 
 export const FeatureImportanceChart: React.FC<FeatureImportanceChartProps> = ({ data }) => {
+  const chartData = data && data.length > 0 ? data : MOCK_GLOBAL_FEATURE_IMPORTANCE;
   // Sort by rank ascending
-  const sortedData = [...data].sort((a, b) => a.rank - b.rank);
+  const sortedData = [...chartData].sort((a, b) => a.rank - b.rank);
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200/90 shadow-md p-6 sm:p-8 space-y-6">
+    <div className="bg-white rounded-3xl border border-slate-200 shadow-md p-6 sm:p-8 space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
         <div>
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-1 bg-sky-50 text-sky-700 text-xs font-bold rounded-lg uppercase tracking-wider border border-sky-200/60 flex items-center gap-1.5">
+            <span className="px-2.5 py-1 bg-sky-50 text-sky-700 text-xs font-bold rounded-lg uppercase tracking-wider border border-sky-200 flex items-center gap-1.5">
               <Globe className="w-3.5 h-3.5" />
               <span>Global Model Explanation</span>
             </span>
           </div>
-          <h3 className="text-xl font-bold text-slate-900 tracking-tight mt-2">
+          <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight mt-2">
             Global Feature Importance
           </h3>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Features with the greatest average influence across the trained model dataset.
+            Biomarkers with the highest population-level influence across the trained model dataset.
           </p>
         </div>
 
-        <div className="text-xs text-slate-500 bg-slate-50 p-2.5 rounded-xl border border-slate-200/70 font-mono">
+        <div className="text-xs text-slate-600 bg-slate-50 p-2.5 rounded-xl border border-slate-200 font-mono">
           Metric: Mean |SHAP| Value
         </div>
       </div>
@@ -48,7 +50,7 @@ export const FeatureImportanceChart: React.FC<FeatureImportanceChartProps> = ({ 
               type="category"
               dataKey="displayFeature"
               tick={{ fontSize: 12, fontWeight: 600 }}
-              width={110}
+              width={120}
             />
             <RechartsTooltip
               formatter={(value: any) => [`${Number(value).toFixed(3)}`, 'Mean |SHAP| Importance']}
@@ -74,10 +76,10 @@ export const FeatureImportanceChart: React.FC<FeatureImportanceChartProps> = ({ 
       </div>
 
       {/* Scope Disclaimer */}
-      <div className="bg-sky-50/80 border border-sky-200/80 rounded-xl p-4 flex items-start gap-2.5 text-xs text-sky-900">
+      <div className="bg-sky-50 border border-sky-200 rounded-2xl p-4 flex items-start gap-2.5 text-xs text-sky-900">
         <Info className="w-4 h-4 text-sky-600 shrink-0 mt-0.5" />
         <p className="leading-relaxed">
-          <strong className="font-semibold">Global vs Patient Explanation:</strong> This chart depicts overall feature weight rankings across the entire research dataset population, not patient-specific individual predictions.
+          <strong className="font-semibold">Population vs Patient Attribution:</strong> This global chart depicts overall baseline biomarker importance across the research cohort, complementing the patient-specific SHAP analysis above.
         </p>
       </div>
     </div>

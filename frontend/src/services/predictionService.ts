@@ -1,204 +1,205 @@
-import { PatientInput, PredictionResult, ShapFactor } from '../types/ckd';
-import { MOCK_GLOBAL_FEATURE_IMPORTANCE, MOCK_INCREASING_FACTORS, MOCK_DECREASING_FACTORS } from '../data/mockPrediction';
+import { PatientInput, PredictionResult, ShapFactor, FeatureImportance, RiskLevel, PredictionTarget } from '../types/ckd';
+import { MOCK_GLOBAL_FEATURE_IMPORTANCE } from '../data/mockPrediction';
+
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000').replace(/\/+$/, '');
 
 /**
- * RenalInsight Prediction Service
- * 
- * Currently handles local mock predictions for frontend prototype demonstration.
- * Designed for seamless swap with future FastAPI backend endpoints.
+ * Normalizes raw feature keys/labels to clean, clinical presentation titles.
  */
-export async function analyzeCKDRisk(input: PatientInput): Promise<PredictionResult> {
-  // TODO: Replace mock prediction with FastAPI API call.
-  // Example future implementation:
-  /*
-  const response = await fetch("https://api.renalinsight.ai/predict", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(input)
-  });
-  if (!response.ok) {
-    throw new Error("Failed to generate CKD prediction from backend model");
-  }
-  return await response.json();
-  */
+export function formatDisplayFeatureName(rawName: string, observedValue?: string | number): string {
+  if (!rawName) return 'Clinical Factor';
 
-  // Simulate network latency for realistic UX transition
-  await new Promise((resolve) => setTimeout(resolve, 800));
-
-  // Determine if profile reflects high risk or low risk based on key clinical parameters
-  const isHighRiskPreset =
-    input.htn === 'Yes' ||
-    input.dm === 'Yes' ||
-    input.al === '3' ||
-    input.al === '≥ 4' ||
-    input.sc === '2.5 - 4.8' ||
-    input.sc === '4.8 - 7.1' ||
-    input.sc === '≥ 7.1' ||
-    input.stage === 'Stage 4' ||
-    input.stage === 'Stage 5';
-
-  if (isHighRiskPreset) {
-    const probability = 84.65;
-    const notCkdProbability = Number((100 - probability).toFixed(2));
-    
-    // Custom SHAP factors for high risk demonstration
-    const highRiskIncreasingFactors: ShapFactor[] = [
-      {
-        feature: 'htn',
-        displayFeature: 'Hypertension (Yes)',
-        value: 'Yes',
-        shapValue: 0.4120,
-        direction: 'increasing',
-        category: 'Symptom',
-        description: 'Vascular resistance and arterial hypertension strongly push prediction toward CKD.',
-      },
-      {
-        feature: 'dm',
-        displayFeature: 'Diabetes Mellitus (Yes)',
-        value: 'Yes',
-        shapValue: 0.3840,
-        direction: 'increasing',
-        category: 'Symptom',
-        description: 'Diabetic glomerulosclerosis metabolic pressure factor.',
-      },
-      {
-        feature: 'al',
-        displayFeature: `Albumin (${input.al})`,
-        value: input.al,
-        shapValue: 0.3210,
-        direction: 'increasing',
-        category: 'Kidney',
-        description: 'Glomerular filtration barrier disruption with severe protein excretion.',
-      },
-      {
-        feature: 'sc',
-        displayFeature: `Serum Creatinine (${input.sc})`,
-        value: `${input.sc} mg/dL`,
-        shapValue: 0.2890,
-        direction: 'increasing',
-        category: 'Blood',
-        description: 'Impaired renal clearance indicated by elevated serum creatinine.',
-      },
-      {
-        feature: 'hemo',
-        displayFeature: `Hemoglobin (${input.hemo})`,
-        value: `${input.hemo} g/dL`,
-        shapValue: 0.2150,
-        direction: 'increasing',
-        category: 'Blood',
-        description: 'Decreased renal erythropoietin production leading to anemia.',
-      },
-      {
-        feature: 'sg',
-        displayFeature: `Specific Gravity (${input.sg})`,
-        value: input.sg,
-        shapValue: 0.1840,
-        direction: 'increasing',
-        category: 'Kidney',
-        description: 'Low urine specific gravity indicating urinary concentration defect.',
-      },
-      {
-        feature: 'gfr',
-        displayFeature: `GFR (${input.gfr})`,
-        value: input.gfr,
-        shapValue: 0.1620,
-        direction: 'increasing',
-        category: 'Kidney',
-        description: 'Substantially reduced Glomerular Filtration Rate.',
-      },
-      {
-        feature: 'pe',
-        displayFeature: 'Pedal Edema (Yes)',
-        value: 'Yes',
-        shapValue: 0.1410,
-        direction: 'increasing',
-        category: 'Symptom',
-        description: 'Systemic sodium and fluid overload swelling.',
-      },
-      {
-        feature: 'bp_diastolic',
-        displayFeature: 'Diastolic BP',
-        value: `${input.bp_diastolic} mmHg`,
-        shapValue: 0.0980,
-        direction: 'increasing',
-        category: 'Demographic',
-        description: 'Elevated diastolic baseline pressure.',
-      },
-      {
-        feature: 'appet',
-        displayFeature: 'Appetite (Poor)',
-        value: 'Poor',
-        shapValue: 0.0850,
-        direction: 'increasing',
-        category: 'Symptom',
-        description: 'Uremic symptom affecting nutritional intake.',
-      },
-    ];
-
-    const highRiskDecreasingFactors: ShapFactor[] = [
-      {
-        feature: 'ba',
-        displayFeature: 'Bacteria (Not Present)',
-        value: 'Not Present',
-        shapValue: -0.0450,
-        direction: 'decreasing',
-        category: 'Kidney',
-        description: 'No active bacteriuria detected in urinary sample.',
-      },
-      {
-        feature: 'pcc',
-        displayFeature: 'Pus Cell Clumps (Not Present)',
-        value: 'Not Present',
-        shapValue: -0.0380,
-        direction: 'decreasing',
-        category: 'Kidney',
-        description: 'Absence of inflammatory pus cell aggregations.',
-      },
-      {
-        feature: 'pot',
-        displayFeature: `Potassium (${input.pot})`,
-        value: input.pot,
-        shapValue: -0.0210,
-        direction: 'decreasing',
-        category: 'Blood',
-        description: 'Potassium within manageable buffer zone.',
-      },
-    ];
-
-    return {
-      prediction: 'CKD',
-      probability,
-      notCkdProbability,
-      riskLevel: 'High',
-      modelName: 'Logistic Regression',
-      explainabilityMethod: 'SHAP (SHapley Additive exPlanations)',
-      timestamp: new Date().toISOString(),
-      increasingFactors: highRiskIncreasingFactors,
-      decreasingFactors: highRiskDecreasingFactors,
-      allFactors: [...highRiskIncreasingFactors, ...highRiskDecreasingFactors].sort(
-        (a, b) => Math.abs(b.shapValue) - Math.abs(a.shapValue)
-      ),
-      globalFeatureImportance: MOCK_GLOBAL_FEATURE_IMPORTANCE,
-    };
+  let clean = rawName;
+  // Remove technical prefixes
+  if (clean.startsWith('cat__')) {
+    clean = clean.replace('cat__', '');
+  } else if (clean.startsWith('num__')) {
+    clean = clean.replace('num__', '');
   }
 
-  // Default Low-Risk Demo Result (matches prompt default mock values)
-  const probability = 10.97;
-  const notCkdProbability = 89.03;
+  // Feature name translations
+  const featureMap: Record<string, string> = {
+    'bp (Diastolic)': 'Diastolic Blood Pressure',
+    'bp_diastolic': 'Diastolic Blood Pressure',
+    'bp limit': 'Blood Pressure Limit',
+    'bp_limit': 'Blood Pressure Limit',
+    'sg': 'Specific Gravity',
+    'al': 'Albuminuria (Protein)',
+    'su': 'Urinary Glucose (Sugar)',
+    'rbc': 'Red Blood Cells (Urine)',
+    'pc': 'Pus Cells (Pyuria)',
+    'pcc': 'Pus Cell Clumps',
+    'ba': 'Bacteria (Urine)',
+    'bgr': 'Random Blood Glucose',
+    'bu': 'Blood Urea',
+    'sod': 'Serum Sodium',
+    'sc': 'Serum Creatinine',
+    'pot': 'Serum Potassium',
+    'hemo': 'Hemoglobin',
+    'pcv': 'Packed Cell Volume (Hematocrit)',
+    'rbcc': 'Red Blood Cell Count',
+    'wbcc': 'White Blood Cell Count',
+    'gfr': 'Glomerular Filtration Rate',
+    'htn': 'Hypertension',
+    'dm': 'Diabetes Mellitus',
+    'cad': 'Coronary Artery Disease',
+    'appet': 'Appetite Status',
+    'pe': 'Pedal Edema',
+    'ane': 'Clinical Anemia',
+    'age': 'Patient Age',
+    'stage': 'CKD Stage',
+  };
+
+  // Check if it's a composite key like `hemo_11.3 - 12.6`
+  const underscoreIdx = clean.indexOf('_');
+  if (underscoreIdx > 0) {
+    const baseKey = clean.substring(0, underscoreIdx);
+    const suffix = clean.substring(underscoreIdx + 1);
+    if (featureMap[baseKey]) {
+      return `${featureMap[baseKey]} (${suffix})`;
+    }
+  }
+
+  const baseTitle = featureMap[clean] || clean;
+  if (observedValue !== undefined && observedValue !== '' && !baseTitle.includes(`(${observedValue})`)) {
+    return `${baseTitle} (${observedValue})`;
+  }
+
+  return baseTitle;
+}
+
+/**
+ * Normalizes backend response factors into standard frontend ShapFactor objects.
+ */
+function normalizeShapFactor(raw: any): ShapFactor {
+  const featureKey = raw.feature || '';
+  const shapVal = typeof raw.shap_value === 'number' ? raw.shap_value : (typeof raw.shapValue === 'number' ? raw.shapValue : 0);
+  const observedVal = raw.value !== undefined ? raw.value : '';
+  const direction: 'increasing' | 'decreasing' = raw.direction === 'increasing' || shapVal > 0 ? 'increasing' : 'decreasing';
+  
+  const displayFeature = raw.display_feature || raw.displayFeature || formatDisplayFeatureName(featureKey, observedVal);
 
   return {
-    prediction: 'NOT CKD',
+    feature: featureKey,
+    displayFeature,
+    value: observedVal,
+    shapValue: Number(shapVal.toFixed(4)),
+    direction,
+    category: raw.category || 'Kidney',
+    description: raw.description || undefined,
+  };
+}
+
+/**
+ * Executes ML prediction and SHAP calculation via the FastAPI backend.
+ */
+export async function analyzeCKDRisk(input: PatientInput): Promise<PredictionResult> {
+  const endpoint = `${API_BASE_URL}/predict`;
+
+  let response: Response;
+  try {
+    response = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify(input),
+    });
+  } catch (networkError: any) {
+    throw new Error(
+      `Unable to connect to the RenalInsight backend at ${API_BASE_URL}. Please ensure the FastAPI server is running with 'uv run uvicorn app.main:app --reload'.`
+    );
+  }
+
+  if (!response.ok) {
+    let errorDetail = `Server responded with status ${response.status}`;
+    try {
+      const errorJson = await response.json();
+      if (errorJson.details && Array.isArray(errorJson.details)) {
+        const fields = errorJson.details.map((d: any) => `${d.field}: ${d.message}`).join('; ');
+        errorDetail = `Validation failure: ${fields}`;
+      } else if (errorJson.message) {
+        errorDetail = errorJson.message;
+      } else if (errorJson.detail) {
+        errorDetail = typeof errorJson.detail === 'string' ? errorJson.detail : JSON.stringify(errorJson.detail);
+      }
+    } catch {
+      // Use fallback errorDetail
+    }
+    throw new Error(errorDetail);
+  }
+
+  const data = await response.json();
+
+  // Normalize response
+  const prediction: PredictionTarget = data.prediction === 'CKD' ? 'CKD' : 'NOT CKD';
+  const probability = typeof data.probability === 'number' ? Number(data.probability.toFixed(2)) : 0;
+  const notCkdProbability = typeof data.not_ckd_probability === 'number'
+    ? Number(data.not_ckd_probability.toFixed(2))
+    : (typeof data.notCkdProbability === 'number' ? Number(data.notCkdProbability.toFixed(2)) : Number((100 - probability).toFixed(2)));
+
+  const riskLevel: RiskLevel = data.risk_level || data.riskLevel || (probability >= 70 ? 'High' : (probability >= 30 ? 'Moderate' : 'Low'));
+
+  const rawIncreasing = data.increasing_factors || data.increasingFactors || [];
+  const rawDecreasing = data.decreasing_factors || data.decreasingFactors || [];
+  const rawAll = data.all_factors || data.allFactors || [];
+
+  const increasingFactors: ShapFactor[] = rawIncreasing.map(normalizeShapFactor);
+  const decreasingFactors: ShapFactor[] = rawDecreasing.map(normalizeShapFactor);
+  
+  let allFactors: ShapFactor[] = rawAll.length > 0
+    ? rawAll.map(normalizeShapFactor)
+    : [...increasingFactors, ...decreasingFactors];
+
+  allFactors.sort((a, b) => Math.abs(b.shapValue) - Math.abs(a.shapValue));
+
+  const globalImportance: FeatureImportance[] = (data.global_feature_importance || data.globalFeatureImportance || MOCK_GLOBAL_FEATURE_IMPORTANCE).map((g: any, index: number) => ({
+    feature: g.feature || `feat_${index}`,
+    displayFeature: g.display_feature || g.displayFeature || formatDisplayFeatureName(g.feature),
+    importance: typeof g.importance === 'number' ? g.importance : 0.1,
+    rank: g.rank || index + 1,
+    description: g.description || 'Clinical feature importance ranking.',
+  }));
+
+  return {
+    prediction,
     probability,
     notCkdProbability,
-    riskLevel: 'Low',
-    modelName: 'Logistic Regression',
-    explainabilityMethod: 'SHAP (SHapley Additive exPlanations)',
-    timestamp: new Date().toISOString(),
-    increasingFactors: MOCK_INCREASING_FACTORS,
-    decreasingFactors: MOCK_DECREASING_FACTORS,
-    allFactors: [...MOCK_INCREASING_FACTORS, ...MOCK_DECREASING_FACTORS].sort(
-      (a, b) => Math.abs(b.shapValue) - Math.abs(a.shapValue)
-    ),
-    globalFeatureImportance: MOCK_GLOBAL_FEATURE_IMPORTANCE,
+    riskLevel,
+    modelName: data.model_name || data.modelName || 'Logistic Regression (XAI-Enabled)',
+    explainabilityMethod: data.explainability_method || data.explainabilityMethod || 'SHAP (SHapley Additive exPlanations)',
+    timestamp: data.timestamp || new Date().toISOString(),
+    increasingFactors,
+    decreasingFactors,
+    allFactors,
+    globalFeatureImportance: globalImportance,
   };
+}
+
+/**
+ * Checks if the backend API service is available and healthy.
+ */
+export async function checkApiHealth(): Promise<{ healthy: boolean; details?: any }> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/health`, { method: 'GET' });
+    if (res.ok) {
+      const data = await res.json();
+      return { healthy: data.status === 'healthy', details: data };
+    }
+    return { healthy: false };
+  } catch {
+    return { healthy: false };
+  }
+}
+
+/**
+ * Fetches model metadata and evaluation statistics from backend.
+ */
+export async function fetchModelInfo(): Promise<any> {
+  const res = await fetch(`${API_BASE_URL}/model-info`, { method: 'GET' });
+  if (!res.ok) {
+    throw new Error('Failed to fetch model info from backend');
+  }
+  return await res.json();
 }

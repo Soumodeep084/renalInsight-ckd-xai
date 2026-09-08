@@ -1,73 +1,143 @@
-import React from 'react';
-import { Menu, Activity, Bell, Info } from 'lucide-react';
-import { ActiveTab } from '../../types/ckd';
+import React, { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
+import {
+  Menu,
+  Activity,
+  Info,
+  Server,
+  RefreshCw,
+  LayoutDashboard,
+  Stethoscope,
+  FileCheck2,
+} from 'lucide-react';
+import { checkApiHealth } from '../../services/predictionService';
 
 interface HeaderProps {
-  activeTab: ActiveTab;
   onMobileMenuToggle: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ activeTab, onMobileMenuToggle }) => {
+export const Header: React.FC<HeaderProps> = ({ onMobileMenuToggle }) => {
+  const location = useLocation();
+  const [isBackendOnline, setIsBackendOnline] = useState<boolean | null>(null);
+  const [isChecking, setIsChecking] = useState(false);
+
+  const verifyHealth = async () => {
+    setIsChecking(true);
+    const res = await checkApiHealth();
+    setIsBackendOnline(res.healthy);
+    setIsChecking(false);
+  };
+
+  useEffect(() => {
+    verifyHealth();
+    const interval = setInterval(verifyHealth, 15000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const getPageMeta = () => {
+    switch (location.pathname) {
+      case '/':
+        return {
+          title: 'Clinical AI Dashboard',
+          subtitle: 'Executive overview, model specifications & workflow navigation',
+          icon: LayoutDashboard,
+        };
+      case '/predict':
+        return {
+          title: 'CKD Risk Prediction Form',
+          subtitle: 'Enter patient parameters across 28 validated features for real-time inference',
+          icon: Stethoscope,
+        };
+      case '/results':
+        return {
+          title: 'XAI Prediction & Explainability Report',
+          subtitle: 'Quantitative SHAP feature attribution and clinical risk breakdown',
+          icon: FileCheck2,
+        };
+      case '/about':
+        return {
+          title: 'About RenalInsight',
+          subtitle: 'Model specifications, research dataset & SHAP methodology',
+          icon: Info,
+        };
+      default:
+        return {
+          title: 'RenalInsight Portal',
+          subtitle: 'Explainable AI for Chronic Kidney Disease assessment',
+          icon: Activity,
+        };
+    }
+  };
+
+  const { title, subtitle, icon: PageIcon } = getPageMeta();
+
   return (
-    <header className="sticky top-0 z-30 bg-white border-b border-slate-200 px-4 sm:px-6 lg:px-8 py-4 transition-all">
+    <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200 px-4 sm:px-6 lg:px-8 py-4 transition-all shadow-xs">
       <div className="flex items-center justify-between gap-4">
         {/* Left side: Mobile menu toggle + Titles */}
-        <div className="flex items-center gap-3 sm:gap-4">
+        <div className="flex items-center gap-3 sm:gap-4 min-w-0">
           <button
             type="button"
             onClick={onMobileMenuToggle}
-            className="lg:hidden text-slate-600 hover:text-slate-900 p-2 rounded-lg hover:bg-slate-100 transition-colors"
-            aria-label="Open mobile menu"
+            className="lg:hidden text-slate-600 hover:text-slate-900 p-2 rounded-xl hover:bg-slate-100 transition-colors shrink-0"
+            aria-label="Open mobile navigation menu"
           >
             <Menu className="w-5 h-5" />
           </button>
 
-          <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
-              {activeTab === 'dashboard' ? (
-                <>
-                  <Activity className="w-6 h-6 text-teal-600 hidden sm:inline-block" />
-                  <span>CKD Risk Prediction</span>
-                </>
-              ) : (
-                <>
-                  <Info className="w-6 h-6 text-teal-600 hidden sm:inline-block" />
-                  <span>About RenalInsight</span>
-                </>
-              )}
+          <div className="min-w-0">
+            <h1 className="text-lg sm:text-xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2 truncate">
+              <PageIcon className="w-5 h-5 text-teal-600 shrink-0 hidden sm:inline-block" />
+              <span className="truncate">{title}</span>
             </h1>
-            <p className="text-xs sm:text-sm text-slate-500 mt-0.5 font-medium">
-              {activeTab === 'dashboard'
-                ? 'Explainable machine learning-based chronic kidney disease risk analysis'
-                : 'Architecture, model methodology, SHAP explainability & clinical dataset overview'}
+            <p className="text-xs text-slate-500 mt-0.5 font-medium truncate hidden sm:block">
+              {subtitle}
             </p>
           </div>
         </div>
 
-        {/* Right side: Status indicator & notification icon */}
-        <div className="flex items-center gap-3">
-          {/* Static Model Status */}
-          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200/80 rounded-full text-xs font-semibold shadow-xs">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-            </span>
-            <span>Model Ready</span>
-          </div>
-
-          <div className="sm:hidden flex items-center justify-center w-8 h-8 bg-emerald-50 text-emerald-700 rounded-full border border-emerald-200">
-            <span className="h-2 w-2 rounded-full bg-emerald-500"></span>
-          </div>
-
-          {/* Info/Notification Icon */}
+        {/* Right side: Live backend connection indicator */}
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           <button
             type="button"
-            className="p-2 text-slate-500 hover:text-teal-600 hover:bg-slate-100 rounded-full transition-colors relative"
-            title="System notifications & research notices"
-            aria-label="System notifications"
+            onClick={verifyHealth}
+            title="Click to refresh FastAPI backend health status"
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer ${
+              isBackendOnline === true
+                ? 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100'
+                : isBackendOnline === false
+                ? 'bg-rose-50 text-rose-800 border-rose-200 hover:bg-rose-100'
+                : 'bg-slate-100 text-slate-700 border-slate-200'
+            }`}
           >
-            <Bell className="w-5 h-5" />
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-teal-500 rounded-full ring-2 ring-white"></span>
+            <span className="relative flex h-2 w-2">
+              {isBackendOnline === true && (
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              )}
+              <span
+                className={`relative inline-flex rounded-full h-2 w-2 ${
+                  isBackendOnline === true
+                    ? 'bg-emerald-500'
+                    : isBackendOnline === false
+                    ? 'bg-rose-500'
+                    : 'bg-amber-400'
+                }`}
+              ></span>
+            </span>
+            <Server className="w-3.5 h-3.5 hidden sm:inline-block" />
+            <span className="hidden sm:inline">
+              {isChecking
+                ? 'Checking...'
+                : isBackendOnline === true
+                ? 'FastAPI Connected'
+                : isBackendOnline === false
+                ? 'Backend Offline'
+                : 'Checking API...'}
+            </span>
+            <span className="sm:hidden font-bold">
+              {isBackendOnline === true ? 'API Online' : isBackendOnline === false ? 'API Offline' : 'API...'}
+            </span>
+            <RefreshCw className={`w-3 h-3 ml-0.5 ${isChecking ? 'animate-spin' : ''}`} />
           </button>
         </div>
       </div>

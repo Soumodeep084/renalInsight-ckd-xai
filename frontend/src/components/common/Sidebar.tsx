@@ -1,38 +1,62 @@
 import React from 'react';
-import { LayoutDashboard, Stethoscope, Info, ShieldAlert, X, Brain } from 'lucide-react';
-import { ActiveTab } from '../../types/ckd';
+import { NavLink } from 'react-router-dom';
+import {
+  LayoutDashboard,
+  Stethoscope,
+  Activity,
+  Info,
+  ShieldAlert,
+  X,
+  Brain,
+} from 'lucide-react';
+import { usePrediction } from '../../context/PredictionContext';
 
 interface SidebarProps {
-  activeTab: ActiveTab;
-  onTabChange: (tab: ActiveTab) => void;
   isOpenMobile: boolean;
   onCloseMobile: () => void;
-  onScrollToForm?: () => void;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({
-  activeTab,
-  onTabChange,
-  isOpenMobile,
-  onCloseMobile,
-  onScrollToForm,
-}) => {
-  const handleNavClick = (tab: ActiveTab, scrollToForm = false) => {
-    onTabChange(tab);
-    onCloseMobile();
-    if (scrollToForm && onScrollToForm) {
-      setTimeout(() => {
-        onScrollToForm();
-      }, 50);
-    }
-  };
+export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile }) => {
+  const { result } = usePrediction();
+
+  const navItems = [
+    {
+      to: '/',
+      label: 'Dashboard',
+      icon: LayoutDashboard,
+      badge: null,
+    },
+    {
+      to: '/predict',
+      label: 'CKD Prediction',
+      icon: Stethoscope,
+      badge: null,
+    },
+    {
+      to: '/results',
+      label: 'Results & XAI',
+      icon: Activity,
+      badge: result ? (result.prediction === 'CKD' ? 'CKD' : 'Not CKD') : null,
+      badgeColor: result?.prediction === 'CKD' ? 'bg-rose-500 text-white' : 'bg-teal-500 text-slate-950',
+    },
+    {
+      to: '/about',
+      label: 'About & Model',
+      icon: Info,
+      badge: null,
+    },
+  ];
 
   const sidebarContent = (
     <div className="flex flex-col h-full bg-slate-900 text-slate-100 border-r border-slate-800 select-none">
       {/* Top Header Logo */}
       <div className="p-6 border-b border-slate-800/80 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-500 to-sky-600 flex items-center justify-center shadow-lg shadow-teal-500/20 text-white font-bold">
+        <NavLink
+          to="/"
+          onClick={onCloseMobile}
+          className="flex items-center gap-3 group"
+        >
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-500 to-sky-600 flex items-center justify-center shadow-lg shadow-teal-500/20 text-white font-bold group-hover:scale-105 transition-transform">
             <Brain className="w-6 h-6" />
           </div>
           <div>
@@ -43,14 +67,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
               Explainable CKD AI
             </span>
           </div>
-        </div>
+        </NavLink>
 
         {/* Mobile Close Button */}
         <button
           type="button"
           onClick={onCloseMobile}
-          className="lg:hidden text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors"
-          aria-label="Close menu"
+          className="lg:hidden text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-800 transition-colors"
+          aria-label="Close navigation menu"
         >
           <X className="w-5 h-5" />
         </button>
@@ -59,53 +83,47 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Navigation Links */}
       <div className="flex-1 py-6 px-4 space-y-1.5 overflow-y-auto">
         <div className="px-3 pb-2 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
-          Main Navigation
+          Clinical Portal Navigation
         </div>
 
-        <button
-          type="button"
-          onClick={() => handleNavClick('dashboard')}
-          className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-sm font-medium transition-all ${
-            activeTab === 'dashboard'
-              ? 'bg-teal-600 text-white shadow-md shadow-teal-600/20'
-              : 'text-slate-300 hover:bg-slate-800/70 hover:text-white'
-          }`}
-        >
-          <LayoutDashboard className="w-4 h-4" />
-          <span>Dashboard</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => handleNavClick('dashboard', true)}
-          className="w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800/70 hover:text-white transition-all group"
-        >
-          <Stethoscope className="w-4 h-4 text-teal-400 group-hover:scale-110 transition-transform" />
-          <span>Prediction Form</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => handleNavClick('about')}
-          className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-sm font-medium transition-all ${
-            activeTab === 'about'
-              ? 'bg-teal-600 text-white shadow-md shadow-teal-600/20'
-              : 'text-slate-300 hover:bg-slate-800/70 hover:text-white'
-          }`}
-        >
-          <Info className="w-4 h-4" />
-          <span>About Model</span>
-        </button>
+        {navItems.map((item) => {
+          const Icon = item.icon;
+          return (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              end={item.to === '/'}
+              onClick={onCloseMobile}
+              className={({ isActive }) =>
+                `w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
+                  isActive
+                    ? 'bg-teal-600 text-white shadow-md shadow-teal-600/20 font-bold'
+                    : 'text-slate-300 hover:bg-slate-800/70 hover:text-white'
+                }`
+              }
+            >
+              <div className="flex items-center gap-3">
+                <Icon className="w-4 h-4 shrink-0" />
+                <span>{item.label}</span>
+              </div>
+              {item.badge && (
+                <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full ${item.badgeColor}`}>
+                  {item.badge}
+                </span>
+              )}
+            </NavLink>
+          );
+        })}
       </div>
 
-      {/* Bottom Footer Callout */}
-      <div className="p-4 m-4 bg-slate-800/60 rounded-xl border border-slate-700/60 space-y-2">
+      {/* Bottom Medical Research Callout */}
+      <div className="p-4 m-4 bg-slate-800/60 rounded-2xl border border-slate-700/60 space-y-2">
         <div className="flex items-center gap-2 text-xs font-semibold text-teal-400">
           <ShieldAlert className="w-4 h-4 shrink-0" />
-          <span>AI-assisted risk analysis</span>
+          <span>Research Support AI</span>
         </div>
         <p className="text-[11px] text-slate-400 leading-snug">
-          Not a diagnostic tool. Research decision-support system intended for academic clinical evaluation.
+          Not a diagnostic device. Decision-support framework intended for clinical research evaluation.
         </p>
       </div>
     </div>

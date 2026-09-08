@@ -3,12 +3,14 @@ export type RiskLevel = 'Low' | 'Moderate' | 'High';
 export type PredictionTarget = 'CKD' | 'NOT CKD';
 
 export interface PatientInput {
-  // Patient Information
+  // 1. Patient Information
   age: string;
+
+  // 2. Blood Pressure
   bp_diastolic: number;
   bp_limit: string;
 
-  // Kidney & Urine Parameters
+  // 3. Kidney & Urine Parameters
   sg: string; // Specific Gravity
   al: string; // Albumin
   su: string; // Sugar
@@ -17,7 +19,7 @@ export interface PatientInput {
   pcc: string; // Pus Cell Clumps
   ba: string; // Bacteria
 
-  // Blood Test Parameters
+  // 4. Blood Test Parameters
   bgr: string; // Blood Glucose Random
   bu: string; // Blood Urea
   sod: string; // Sodium
@@ -29,16 +31,14 @@ export interface PatientInput {
   wbcc: string; // WBC Count
   gfr: string; // Glomerular Filtration Rate
 
-  // Medical Conditions & Symptoms
+  // 5. Medical Conditions & Symptoms
   htn: string; // Hypertension (Yes/No)
   dm: string; // Diabetes Mellitus (Yes/No)
   cad: string; // Coronary Artery Disease (Yes/No)
   appet: string; // Appetite (Good/Poor)
   pe: string; // Pedal Edema (Yes/No)
   ane: string; // Anemia (Yes/No)
-
-  // CKD Stage
-  stage: string; // Stage 1 to Stage 5
+  stage: string; // CKD Stage (Stage 1 to Stage 5)
 }
 
 export interface ShapFactor {
@@ -81,4 +81,4 @@ export interface PresetPatient {
   data: PatientInput;
 }
 
-export type ActiveTab = 'dashboard' | 'about';
+export type NavRoute = '/' | '/predict' | '/results' | '/about';
