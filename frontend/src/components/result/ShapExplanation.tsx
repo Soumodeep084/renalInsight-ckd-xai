@@ -1,22 +1,26 @@
 import React, { useState } from 'react';
 import { ShapFactor } from '../../types/ckd';
 import { formatShapValue } from '../../utils/formatters';
+import { getDualExplanation } from '../../data/featureGuideData';
 import {
   TrendingUp,
   TrendingDown,
   Layers,
-  HelpCircle,
   Filter,
   ShieldCheck,
   Activity,
   ChevronDown,
   ChevronUp,
+  Info,
+  Sparkles,
+  BookOpen,
 } from 'lucide-react';
 
 interface ShapExplanationProps {
   increasingFactors: ShapFactor[];
   decreasingFactors: ShapFactor[];
   allFactors: ShapFactor[];
+  onOpenGuide?: () => void;
 }
 
 type DirectionTab = 'all' | 'increasing' | 'decreasing' | 'split';
@@ -26,11 +30,13 @@ export const ShapExplanation: React.FC<ShapExplanationProps> = ({
   increasingFactors,
   decreasingFactors,
   allFactors,
+  onOpenGuide,
 }) => {
   const [activeTab, setActiveTab] = useState<DirectionTab>('split');
   const [selectedCategory, setSelectedCategory] = useState<CategoryFilter>('all');
   const [showAllIncreasing, setShowAllIncreasing] = useState(false);
   const [showAllDecreasing, setShowAllDecreasing] = useState(false);
+  const [expandedMedicalIds, setExpandedMedicalIds] = useState<Record<string, boolean>>({});
 
   // Maximum SHAP value for proportional bar scaling
   const maxShap = Math.max(
@@ -47,9 +53,32 @@ export const ShapExplanation: React.FC<ShapExplanationProps> = ({
   const filteredDecreasing = filterByCategory(decreasingFactors);
   const filteredAll = filterByCategory(allFactors);
 
+  const toggleMedicalDetail = (cardKey: string) => {
+    setExpandedMedicalIds((prev) => ({
+      ...prev,
+      [cardKey]: !prev[cardKey],
+    }));
+  };
+
   const renderFactorCard = (factor: ShapFactor, index: number) => {
     const isIncreasing = factor.direction === 'increasing';
     const barWidthPercent = Math.min((Math.abs(factor.shapValue) / maxShap) * 100, 100);
+    const cardKey = `${factor.feature}-${index}-${factor.direction}`;
+    const isMedicalExpanded = !!expandedMedicalIds[cardKey];
+
+    // Dual explanations
+    const dual = getDualExplanation(factor.feature, factor.direction, factor.value, factor.shapValue);
+    const generalText = factor.generalExplanation || dual.generalExplanation;
+    const medicalText = factor.medicalExplanation || factor.description || dual.medicalExplanation;
+    const strength = factor.influenceStrength || dual.influenceStrength;
+
+    const strengthStyles = {
+      Strong: isIncreasing
+        ? 'bg-rose-100 text-rose-800 border-rose-300'
+        : 'bg-teal-100 text-teal-900 border-teal-300',
+      Moderate: 'bg-slate-100 text-slate-700 border-slate-200',
+      Mild: 'bg-slate-50 text-slate-500 border-slate-200',
+    };
 
     const categoryBadgeColors: Record<string, string> = {
       Kidney: 'bg-emerald-50 text-emerald-800 border-emerald-200',
@@ -60,36 +89,74 @@ export const ShapExplanation: React.FC<ShapExplanationProps> = ({
 
     return (
       <div
-        key={`${factor.feature}-${index}`}
-        className="p-4 rounded-xl border border-slate-200/90 bg-white hover:border-slate-300 hover:shadow-xs transition-all space-y-2.5 group"
+        key={cardKey}
+        className={`p-4 sm:p-5 rounded-2xl border transition-all space-y-3 bg-white ${
+          isIncreasing
+            ? 'border-rose-100 hover:border-rose-300 hover:shadow-xs'
+            : 'border-teal-100 hover:border-teal-300 hover:shadow-xs'
+        }`}
       >
+        {/* Top Header Row */}
         <div className="flex items-start justify-between gap-3 text-xs sm:text-sm">
-          <div className="space-y-0.5 min-w-0">
-            <div className="flex items-center gap-2 font-bold text-slate-900 truncate">
+          <div className="space-y-1 min-w-0">
+            <div className="flex flex-wrap items-center gap-2 font-bold text-slate-900">
               <span
                 className={`w-2.5 h-2.5 rounded-full shrink-0 ${
                   isIncreasing ? 'bg-rose-500' : 'bg-teal-600'
                 }`}
               />
               <span className="truncate">{factor.displayFeature}</span>
+
+              {/* Direction Indicator Badge */}
+              <span
+                className={`text-[10px] font-bold px-2 py-0.5 rounded-md border flex items-center gap-1 ${
+                  isIncreasing
+                    ? 'bg-rose-50 text-rose-700 border-rose-200'
+                    : 'bg-teal-50 text-teal-700 border-teal-200'
+                }`}
+              >
+                {isIncreasing ? (
+                  <>
+                    <TrendingUp className="w-3 h-3" />
+                    <span>Pushes toward CKD</span>
+                  </>
+                ) : (
+                  <>
+                    <TrendingDown className="w-3 h-3" />
+                    <span>Pushes toward Not CKD</span>
+                  </>
+                )}
+              </span>
             </div>
+
             {factor.value !== undefined && factor.value !== '' && (
               <div className="text-xs text-slate-500 font-medium pl-4.5">
-                Observed Value: <span className="text-slate-800 font-semibold">{String(factor.value)}</span>
+                Observed Patient Value:{' '}
+                <span className="text-slate-800 font-semibold">{String(factor.value)}</span>
               </div>
             )}
           </div>
 
-          <div className="flex flex-col items-end gap-1 shrink-0">
-            <span
-              className={`font-mono font-bold text-xs px-2 py-0.5 rounded-md ${
-                isIncreasing
-                  ? 'bg-rose-50 text-rose-700 border border-rose-200'
-                  : 'bg-teal-50 text-teal-700 border border-teal-200'
-              }`}
-            >
-              {formatShapValue(factor.shapValue)}
-            </span>
+          <div className="flex flex-col items-end gap-1.5 shrink-0">
+            <div className="flex items-center gap-1.5">
+              <span
+                className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${
+                  strengthStyles[strength]
+                }`}
+              >
+                {strength} Influence
+              </span>
+              <span
+                className={`font-mono font-bold text-xs px-2 py-0.5 rounded-md ${
+                  isIncreasing
+                    ? 'bg-rose-50 text-rose-700 border border-rose-200'
+                    : 'bg-teal-50 text-teal-700 border border-teal-200'
+                }`}
+              >
+                {formatShapValue(factor.shapValue)}
+              </span>
+            </div>
+
             <span
               className={`text-[10px] px-2 py-0.5 rounded-md border font-semibold ${
                 categoryBadgeColors[factor.category] || 'bg-slate-100 text-slate-700'
@@ -101,7 +168,7 @@ export const ShapExplanation: React.FC<ShapExplanationProps> = ({
         </div>
 
         {/* Proportional Magnitude Bar */}
-        <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden flex">
+        <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden flex">
           <div
             className={`h-full rounded-full transition-all duration-500 ease-out ${
               isIncreasing
@@ -112,11 +179,37 @@ export const ShapExplanation: React.FC<ShapExplanationProps> = ({
           />
         </div>
 
-        {factor.description && (
-          <p className="text-xs text-slate-600 leading-relaxed pt-0.5">
-            {factor.description}
+        {/* 1. General Explanation (Beginner Friendly, visible by default) */}
+        <div className="p-3 bg-slate-50/80 rounded-xl border border-slate-200/60 space-y-1">
+          <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-700">
+            <Info className="w-3.5 h-3.5 text-teal-600 shrink-0" />
+            <span>General Explanation</span>
+          </div>
+          <p className="text-xs text-slate-700 leading-relaxed font-normal">
+            {generalText}
           </p>
-        )}
+        </div>
+
+        {/* 2. Medical Explanation Toggle (Expandable for technical detail) */}
+        <div className="pt-0.5">
+          <button
+            type="button"
+            onClick={() => toggleMedicalDetail(cardKey)}
+            className="text-[11px] font-semibold text-slate-500 hover:text-teal-700 flex items-center gap-1 transition-colors cursor-pointer"
+          >
+            <span>{isMedicalExpanded ? 'Hide clinical medical details' : 'Show clinical medical details'}</span>
+            {isMedicalExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+          </button>
+
+          {isMedicalExpanded && (
+            <div className="mt-2 p-3 bg-teal-50/40 rounded-xl border border-teal-100 text-xs text-slate-600 leading-relaxed animate-fade-in font-mono text-[11px]">
+              <strong className="text-teal-900 block font-semibold mb-0.5 font-sans text-xs">
+                Clinical Pathology Context:
+              </strong>
+              {medicalText}
+            </div>
+          )}
+        </div>
       </div>
     );
   };
@@ -131,7 +224,6 @@ export const ShapExplanation: React.FC<ShapExplanationProps> = ({
               <Activity className="w-3.5 h-3.5" />
               <span>Explainable AI (XAI) Engine</span>
             </span>
-            <span className="text-xs text-slate-400 font-mono">SHAP Feature Attribution</span>
           </div>
 
           <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
@@ -145,15 +237,39 @@ export const ShapExplanation: React.FC<ShapExplanationProps> = ({
         {/* Legend */}
         <div className="flex items-center gap-2 sm:gap-3 bg-slate-50 p-3 rounded-2xl border border-slate-200/80 text-xs shrink-0">
           <div className="flex items-center gap-1.5 font-bold text-rose-700">
-            <span className="w-3 h-3 bg-rose-500 rounded-sm"></span>
+            <span className="w-3 h-3 bg-rose-500 rounded-sm" />
             <span>+ Increases CKD Risk</span>
           </div>
           <div className="h-4 w-px bg-slate-200" />
           <div className="flex items-center gap-1.5 font-bold text-teal-700">
-            <span className="w-3 h-3 bg-teal-600 rounded-sm"></span>
+            <span className="w-3 h-3 bg-teal-600 rounded-sm" />
             <span>- Decreases CKD Risk</span>
           </div>
         </div>
+      </div>
+
+      {/* Beginner Quick Guide Callout */}
+      <div className="p-4 bg-teal-50/60 rounded-2xl border border-teal-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-teal-950">
+        <div className="flex items-start gap-2.5">
+          <Sparkles className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" />
+          <div>
+            <span className="font-bold">How to read these factor cards: </span>
+            <span className="text-slate-700">
+              Each card shows the test name, your value, whether it pushed the score toward or away from CKD, and an easy general explanation. Click "Show clinical medical details" on any card for technical background.
+            </span>
+          </div>
+        </div>
+
+        {onOpenGuide && (
+          <button
+            type="button"
+            onClick={onOpenGuide}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-bold shrink-0 transition-colors shadow-xs cursor-pointer"
+          >
+            <BookOpen className="w-3.5 h-3.5" />
+            <span>View Full 25-Feature Guide</span>
+          </button>
+        )}
       </div>
 
       {/* Control Bar: View Tabs & Domain Filters */}
@@ -163,7 +279,7 @@ export const ShapExplanation: React.FC<ShapExplanationProps> = ({
           <button
             type="button"
             onClick={() => setActiveTab('split')}
-            className={`px-3 py-1.5 rounded-lg transition-all ${
+            className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
               activeTab === 'split'
                 ? 'bg-white text-slate-900 shadow-xs'
                 : 'text-slate-600 hover:text-slate-900'
@@ -174,7 +290,7 @@ export const ShapExplanation: React.FC<ShapExplanationProps> = ({
           <button
             type="button"
             onClick={() => setActiveTab('increasing')}
-            className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
+            className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
               activeTab === 'increasing'
                 ? 'bg-rose-500 text-white shadow-xs'
                 : 'text-slate-600 hover:text-rose-700'
@@ -186,7 +302,7 @@ export const ShapExplanation: React.FC<ShapExplanationProps> = ({
           <button
             type="button"
             onClick={() => setActiveTab('decreasing')}
-            className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
+            className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
               activeTab === 'decreasing'
                 ? 'bg-teal-600 text-white shadow-xs'
                 : 'text-slate-600 hover:text-teal-700'
@@ -198,7 +314,7 @@ export const ShapExplanation: React.FC<ShapExplanationProps> = ({
           <button
             type="button"
             onClick={() => setActiveTab('all')}
-            className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
+            className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
               activeTab === 'all'
                 ? 'bg-white text-slate-900 shadow-xs'
                 : 'text-slate-600 hover:text-slate-900'
@@ -232,7 +348,7 @@ export const ShapExplanation: React.FC<ShapExplanationProps> = ({
       {activeTab === 'split' ? (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
           {/* Risk-Increasing Factors Column */}
-          <div className="space-y-4 bg-rose-50/40 p-5 rounded-2xl border border-rose-100">
+          <div className="space-y-4 bg-rose-50/40 p-4 sm:p-5 rounded-2xl border border-rose-100">
             <div className="flex items-center justify-between border-b border-rose-200/60 pb-3">
               <div className="flex items-center gap-2">
                 <div className="w-7 h-7 rounded-lg bg-rose-500 text-white flex items-center justify-center font-bold">
@@ -286,7 +402,7 @@ export const ShapExplanation: React.FC<ShapExplanationProps> = ({
           </div>
 
           {/* Risk-Decreasing Factors Column */}
-          <div className="space-y-4 bg-teal-50/40 p-5 rounded-2xl border border-teal-100">
+          <div className="space-y-4 bg-teal-50/40 p-4 sm:p-5 rounded-2xl border border-teal-100">
             <div className="flex items-center justify-between border-b border-teal-200/60 pb-3">
               <div className="flex items-center gap-2">
                 <div className="w-7 h-7 rounded-lg bg-teal-600 text-white flex items-center justify-center font-bold">
@@ -344,8 +460,8 @@ export const ShapExplanation: React.FC<ShapExplanationProps> = ({
           {(activeTab === 'increasing'
             ? filteredIncreasing
             : activeTab === 'decreasing'
-            ? filteredDecreasing
-            : filteredAll
+              ? filteredDecreasing
+              : filteredAll
           ).map((factor, idx) => renderFactorCard(factor, idx))}
         </div>
       )}
@@ -358,11 +474,12 @@ export const ShapExplanation: React.FC<ShapExplanationProps> = ({
             Understanding SHAP Feature Attributions
           </h5>
           <p className="leading-relaxed">
-            SHAP (SHapley Additive exPlanations) computes game-theoretic Shapley values to apportion the contribution of each patient biomarker relative to the model baseline expectation.
-            <strong className="text-slate-800 font-semibold"> Note:</strong> These values represent model statistical attributions, not direct causal medical mechanisms. Clinical decisions must always be guided by qualified healthcare professionals.
+            SHAP (SHapley Additive exPlanations) calculates how much each of your 25 clinical markers influenced the AI's calculation.
+            <strong className="text-slate-800 font-semibold"> Remember:</strong> SHAP explains what the statistical model noticed in your data, not a direct medical diagnosis. Clinical health decisions must always be discussed with a qualified medical professional.
           </p>
         </div>
       </div>
     </div>
   );
 };
+

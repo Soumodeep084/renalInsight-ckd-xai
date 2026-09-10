@@ -18,7 +18,7 @@ export const Footer: React.FC = () => {
         </div>
 
         <div className="text-slate-400 font-mono text-[11px]">
-          v1.0.0 (Frontend Demo Mode)
+          v1.0.0 (Made using React and FASTAPI)
         </div>
       </div>
     </footer>

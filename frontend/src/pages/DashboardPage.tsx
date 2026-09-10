@@ -27,7 +27,7 @@ export const DashboardPage: React.FC = () => {
 
   useEffect(() => {
     checkApiHealth().then((res) => setIsBackendHealthy(res.healthy));
-    fetchModelInfo().then((info) => setModelInfo(info)).catch(() => {});
+    fetchModelInfo().then((info) => setModelInfo(info)).catch(() => { });
   }, []);
 
   return (
@@ -36,7 +36,7 @@ export const DashboardPage: React.FC = () => {
       <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-teal-950 rounded-3xl p-6 sm:p-10 text-white shadow-xl relative overflow-hidden">
         <div className="absolute right-0 top-0 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
-        <div className="relative z-10 space-y-5 max-w-3xl">
+        <div className="relative z-10 space-y-5 max-w-4xl">
           <div className="inline-flex items-center gap-2 px-3.5 py-1 bg-teal-500/20 text-teal-300 rounded-full text-xs font-semibold border border-teal-400/30">
             <Sparkles className="w-3.5 h-3.5" />
             <span>Explainable Clinical AI Platform</span>
@@ -47,7 +47,7 @@ export const DashboardPage: React.FC = () => {
           </h2>
 
           <p className="text-sm sm:text-base text-slate-300 leading-relaxed font-normal">
-            RenalInsight combines Scikit-Learn machine learning with SHAP (SHapley Additive exPlanations) to evaluate patient CKD risk across 28 validated clinical parameters, providing transparent, quantitative biomarker attributions.
+            RenalInsight combines Scikit-Learn machine learning with SHAP (SHapley Additive exPlanations) to evaluate patient CKD risk across 25 validated clinical parameters, providing transparent, quantitative biomarker attributions.
           </p>
 
           <div className="pt-2 flex flex-wrap items-center gap-4">
@@ -78,11 +78,10 @@ export const DashboardPage: React.FC = () => {
         <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-fade-in">
           <div className="flex items-center gap-4">
             <div
-              className={`w-12 h-12 rounded-2xl flex items-center justify-center font-bold shrink-0 ${
-                result.prediction === 'CKD'
-                  ? 'bg-rose-100 text-rose-700 border border-rose-200'
-                  : 'bg-teal-100 text-teal-700 border border-teal-200'
-              }`}
+              className={`w-12 h-12 rounded-2xl flex items-center justify-center font-bold shrink-0 ${result.prediction === 'CKD'
+                ? 'bg-rose-100 text-rose-700 border border-rose-200'
+                : 'bg-teal-100 text-teal-700 border border-teal-200'
+                }`}
             >
               {result.prediction === 'CKD' ? (
                 <AlertTriangle className="w-6 h-6" />
@@ -119,7 +118,7 @@ export const DashboardPage: React.FC = () => {
       )}
 
       {/* Model & System Specifications Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Card 1: Model Architecture */}
         <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs space-y-3">
           <div className="flex items-center justify-between">
@@ -144,7 +143,7 @@ export const DashboardPage: React.FC = () => {
             <div className="flex justify-between">
               <span className="text-slate-500">Features:</span>
               <span className="font-semibold text-slate-800">
-                28 Validated Clinical Variables
+                25 Validated Clinical Variables
               </span>
             </div>
             <div className="flex justify-between">
@@ -183,50 +182,6 @@ export const DashboardPage: React.FC = () => {
             </div>
           </div>
         </div>
-
-        {/* Card 3: Backend Status */}
-        <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="p-2.5 bg-emerald-50 text-emerald-700 rounded-xl">
-              <Activity className="w-5 h-5" />
-            </div>
-            <div className="flex items-center gap-1.5 text-xs font-bold">
-              <span
-                className={`w-2 h-2 rounded-full ${
-                  isBackendHealthy ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'
-                }`}
-              />
-              <span className={isBackendHealthy ? 'text-emerald-700' : 'text-rose-700'}>
-                {isBackendHealthy ? 'Online' : 'Offline'}
-              </span>
-            </div>
-          </div>
-          <div>
-            <h3 className="text-base font-bold text-slate-900">FastAPI Microservice</h3>
-            <p className="text-xs text-slate-500 mt-0.5">High-Performance Asynchronous Inference</p>
-          </div>
-          <div className="space-y-1.5 text-xs text-slate-600 pt-2 border-t border-slate-100">
-            <div className="flex justify-between">
-              <span className="text-slate-500">Endpoint:</span>
-              <span className="font-mono text-slate-800 font-semibold">POST /predict</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-slate-500">Validation:</span>
-              <span className="font-semibold text-slate-800">Pydantic Schema</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-slate-500">Documentation:</span>
-              <a
-                href="http://127.0.0.1:8000/docs"
-                target="_blank"
-                rel="noreferrer"
-                className="font-semibold text-teal-600 hover:underline"
-              >
-                Swagger UI /docs
-              </a>
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* 3-Step Clinical Decision Flow */}
@@ -247,7 +202,7 @@ export const DashboardPage: React.FC = () => {
               1
             </div>
             <h4 className="font-bold text-slate-900 text-sm">
-              Input 28 Clinical Parameters
+              Input 25 Clinical Parameters
             </h4>
             <p className="text-xs text-slate-600 leading-relaxed">
               Enter patient demographics, resting blood pressure, urinalysis markers (protein, glucose, pus cells), serum biochemistry (creatinine, urea, electrolytes), and medical history.

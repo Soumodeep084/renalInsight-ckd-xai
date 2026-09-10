@@ -39,38 +39,36 @@ def test_api_suite():
         assert resp.json()["input_feature_count"] == 25
         assert resp.json()["encoded_feature_count"] == 108
 
-        # 4. Test POST /predict (Low Risk Patient)
+        # 4. Test POST /predict (Low Risk Patient - 25 exact features matching frontend schema)
         low_risk_payload = {
             "age": "35 - 43",
-            "bp_diastolic": 76.0,
+            "bp_diastolic": 72.0,
             "bp_limit": "70 - 80",
-            "sg": "1.020",
-            "al": "Normal",
-            "su": "Normal",
+            "sg": "1.019 - 1.021",
+            "al": "< 0",
+            "su": "< 0",
             "rbc": "Normal",
             "pc": "Normal",
             "pcc": "Not Present",
             "ba": "Not Present",
             "bgr": "< 112",
-            "bu": "< 34",
+            "bu": "< 48.1",
             "sod": "138 - 143",
-            "sc": "< 1.2",
-            "pot": "3.5 - 4.5",
+            "sc": "< 3.65",
+            "pot": "< 7.31",
             "hemo": "13.9 - 15.2",
             "pcv": "41.3 - 45.2",
             "rbcc": "5.05 - 5.64",
             "wbcc": "4980 - 7360",
-            "gfr": "≥ 90",
             "htn": "No",
             "dm": "No",
             "cad": "No",
             "appet": "Good",
             "pe": "No",
-            "ane": "No",
-            "stage": "Stage 1"
+            "ane": "No"
         }
         resp = client.post("/predict", json=low_risk_payload)
-        print("\n=== POST /predict (Low Risk) ===")
+        print("\n=== POST /predict (Low Risk - 25 Features) ===")
         print("Status:", resp.status_code)
         data = resp.json()
         print("Prediction:", data["prediction"])
@@ -83,38 +81,36 @@ def test_api_suite():
         assert data["risk_level"] == "Low"
         assert len(data["decreasing_factors"]) > 0
 
-        # 5. Test POST /predict (High Risk Patient)
+        # 5. Test POST /predict (High Risk Patient - 25 exact features matching frontend schema)
         high_risk_payload = {
-            "age": "≥ 74",
-            "bp_diastolic": 96.0,
+            "age": "59 - 66",
+            "bp_diastolic": 95.0,
             "bp_limit": "≥ 90",
-            "sg": "< 1.007",
-            "al": "≥ 4",
-            "su": "≥ 4",
+            "sg": "1.009 - 1.011",
+            "al": "3",
+            "su": "2",
             "rbc": "Abnormal",
             "pc": "Abnormal",
             "pcc": "Present",
-            "ba": "Present",
-            "bgr": "≥ 448",
-            "bu": "≥ 160",
-            "sod": "< 118",
-            "sc": "≥ 7.1",
-            "pot": "≥ 5.5",
-            "hemo": "< 6.1",
-            "pcv": "< 17.9",
-            "rbcc": "< 2.69",
-            "wbcc": "≥ 12120",
-            "gfr": "< 15",
+            "ba": "Not Present",
+            "bgr": "196 - 238",
+            "bu": "86.2 - 124.3",
+            "sod": "123 - 128",
+            "sc": "3.65 - 6.8",
+            "pot": "38.18 - 42.59",
+            "hemo": "10 - 11.3",
+            "pcv": "29.6 - 33.5",
+            "rbcc": "3.28 - 3.87",
+            "wbcc": "9740 - 12120",
             "htn": "Yes",
             "dm": "Yes",
             "cad": "Yes",
             "appet": "Poor",
             "pe": "Yes",
-            "ane": "Yes",
-            "stage": "Stage 5"
+            "ane": "Yes"
         }
         resp = client.post("/predict", json=high_risk_payload)
-        print("\n=== POST /predict (High Risk) ===")
+        print("\n=== POST /predict (High Risk - 25 Features) ===")
         print("Status:", resp.status_code)
         data = resp.json()
         print("Prediction:", data["prediction"])
@@ -127,12 +123,43 @@ def test_api_suite():
         assert data["risk_level"] == "High"
         assert len(data["increasing_factors"]) > 0
 
-        # 6. Test Validation Error handling
+        # 6. Test Contract with Model Native Names (e.g. 'bp (Diastolic)', 'bp limit')
+        native_payload = {
+            "age": "59 - 66",
+            "bp (Diastolic)": 76.0,
+            "bp limit": "70 - 80",
+            "sg": "1.019 - 1.021",
+            "al": "< 0",
+            "su": "< 0",
+            "rbc": "Normal",
+            "pc": "Normal",
+            "pcc": "Not Present",
+            "ba": "Not Present",
+            "bgr": "< 112",
+            "bu": "< 48.1",
+            "sod": "138 - 143",
+            "sc": "< 3.65",
+            "pot": "< 7.31",
+            "hemo": "13.9 - 15.2",
+            "pcv": "41.3 - 45.2",
+            "rbcc": "5.05 - 5.64",
+            "wbcc": "4980 - 7360",
+            "htn": "No",
+            "dm": "No",
+            "cad": "No",
+            "appet": "Good",
+            "pe": "No",
+            "ane": "No"
+        }
+        resp = client.post("/predict", json=native_payload)
+        assert resp.status_code == 200
+        assert resp.json()["prediction"] in ["CKD", "NOT CKD"]
+
+        # 7. Test Validation Error handling
         resp = client.post("/predict", json={"age": {"nested": "invalid"}})
         print("\n=== POST /predict (Invalid Payload) ===")
         print("Status:", resp.status_code)
         assert resp.status_code == 422
-        print("Validation response:", resp.json())
 
     print("\n=======================================================")
     print("ALL API ENDPOINTS TESTED AND PASSED SUCCESSFULLY!")
@@ -140,3 +167,4 @@ def test_api_suite():
 
 if __name__ == "__main__":
     test_api_suite()
+

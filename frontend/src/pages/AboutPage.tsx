@@ -100,8 +100,8 @@ export const AboutPage: React.FC = () => {
             </div>
 
             <div className="flex justify-between items-center py-1.5 border-b border-slate-100">
-              <span className="text-slate-500 font-medium">Original Features:</span>
-              <span className="font-mono font-bold text-slate-900">28 Clinical Variables</span>
+              <span className="text-slate-500 font-medium">Final Features:</span>
+              <span className="font-mono font-bold text-slate-900">25 Clinical Variables</span>
             </div>
 
             <div className="flex justify-between items-center py-1.5 border-b border-slate-100">
@@ -151,18 +151,18 @@ export const AboutPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Feature Normalization & Exclusion Notice */}
+      {/* Feature Hygiene & Development Notes */}
       <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs space-y-3">
         <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
           <ShieldCheck className="w-4 h-4 text-teal-600" />
-          <span>Feature Hygiene & Exclusion Rules</span>
+          <span>Model Development & Feature Curation</span>
         </h3>
         <ul className="text-xs text-slate-600 space-y-2 list-disc list-inside">
           <li>
-            <strong className="text-slate-800">Target Leakage Exclusion:</strong> The dataset feature <code className="bg-slate-100 px-1 py-0.5 rounded text-rose-700 font-mono">affected</code> is strictly excluded from frontend user input to prevent artificial model bias.
+            <strong className="text-slate-800">Target Leakage Prevention:</strong> During model development, variables containing direct target proxy information (<code className="bg-slate-100 px-1 py-0.5 rounded text-rose-700 font-mono">grf</code>, <code className="bg-slate-100 px-1 py-0.5 rounded text-rose-700 font-mono">stage</code>, and <code className="bg-slate-100 px-1 py-0.5 rounded text-rose-700 font-mono">affected</code>) were excluded, resulting in the final 25 genuine clinical predictors.
           </li>
           <li>
-            <strong className="text-slate-800">Dataset Artifact Normalization:</strong> Malformed date strings (such as <code className="bg-slate-100 px-1 py-0.5 rounded text-slate-700 font-mono">20-Dec</code>) are normalized to human-readable age brackets (<code className="bg-slate-100 px-1 py-0.5 rounded text-teal-700 font-mono">12 - 20</code>).
+            <strong className="text-slate-800">Standardized Categorical Encodings:</strong> Clinical lab intervals are formatted and encoded via Scikit-Learn transformers matching the trained one-hot feature space.
           </li>
         </ul>
       </div>

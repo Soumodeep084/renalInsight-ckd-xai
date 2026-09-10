@@ -1,5 +1,6 @@
 import { PatientInput, PredictionResult, ShapFactor, FeatureImportance, RiskLevel, PredictionTarget } from '../types/ckd';
 import { MOCK_GLOBAL_FEATURE_IMPORTANCE } from '../data/mockPrediction';
+import { getDualExplanation } from '../data/featureGuideData';
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000').replace(/\/+$/, '');
 
@@ -39,7 +40,6 @@ export function formatDisplayFeatureName(rawName: string, observedValue?: string
     'pcv': 'Packed Cell Volume (Hematocrit)',
     'rbcc': 'Red Blood Cell Count',
     'wbcc': 'White Blood Cell Count',
-    'gfr': 'Glomerular Filtration Rate',
     'htn': 'Hypertension',
     'dm': 'Diabetes Mellitus',
     'cad': 'Coronary Artery Disease',
@@ -47,7 +47,6 @@ export function formatDisplayFeatureName(rawName: string, observedValue?: string
     'pe': 'Pedal Edema',
     'ane': 'Clinical Anemia',
     'age': 'Patient Age',
-    'stage': 'CKD Stage',
   };
 
   // Check if it's a composite key like `hemo_11.3 - 12.6`
@@ -78,6 +77,7 @@ function normalizeShapFactor(raw: any): ShapFactor {
   const direction: 'increasing' | 'decreasing' = raw.direction === 'increasing' || shapVal > 0 ? 'increasing' : 'decreasing';
   
   const displayFeature = raw.display_feature || raw.displayFeature || formatDisplayFeatureName(featureKey, observedVal);
+  const dual = getDualExplanation(featureKey, direction, observedVal, shapVal);
 
   return {
     feature: featureKey,
@@ -86,6 +86,9 @@ function normalizeShapFactor(raw: any): ShapFactor {
     shapValue: Number(shapVal.toFixed(4)),
     direction,
     category: raw.category || 'Kidney',
+    generalExplanation: dual.generalExplanation,
+    medicalExplanation: dual.medicalExplanation,
+    influenceStrength: dual.influenceStrength,
     description: raw.description || undefined,
   };
 }

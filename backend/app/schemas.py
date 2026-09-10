@@ -4,13 +4,13 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 # ---------------------------------------------------------------------------
-# Patient Input Schemas (Exact 28 Features Supported)
+# Patient Input Schemas (Exact 25 Final Features)
 # ---------------------------------------------------------------------------
 
 class PatientInputSchema(BaseModel):
     """
     Patient Clinical Input Schema for Chronic Kidney Disease (CKD) risk evaluation.
-    Supports exact model feature names, snake_case aliases, and frontend preset formats.
+    Supports exact model feature names, snake_case aliases, and frontend preset formats across 25 features.
     """
     # --- Demographics & Resting Hemodynamics (3 features) ---
     age: Union[str, int, float] = Field(
@@ -33,19 +33,19 @@ class PatientInputSchema(BaseModel):
 
     # --- Urinalysis & Kidney Function Markers (7 features) ---
     sg: str = Field(
-        default="1.020",
-        description="Urine Specific Gravity interval (e.g., '1.019 - 1.021', '1.015 - 1.017', '1.020', '< 1.007', '≥ 1.023')",
-        examples=["1.020", "1.019 - 1.021"]
+        default="1.019 - 1.021",
+        description="Urine Specific Gravity interval (e.g., '1.019 - 1.021', '1.015 - 1.017', '1.009 - 1.011', '< 1.007', '≥ 1.023')",
+        examples=["1.019 - 1.021", "< 1.007"]
     )
     al: Union[str, int, float] = Field(
-        default="Normal",
-        description="Albuminuria level (e.g., 'Normal', '< 0', '1', '2', '3', '≥ 4')",
-        examples=["Normal", "< 0", "1"]
+        default="< 0",
+        description="Albuminuria level (e.g., '< 0', '1', '2', '3', '≥ 4')",
+        examples=["< 0", "1", "3"]
     )
     su: Union[str, int, float] = Field(
-        default="Normal",
-        description="Urinary glucose / sugar level (e.g., 'Normal', '< 0', '1', '2', '3', '4', '≥ 4')",
-        examples=["Normal", "< 0", "2"]
+        default="< 0",
+        description="Urinary glucose / sugar level (e.g., '< 0', '2', '3', '4', '≥ 4')",
+        examples=["< 0", "2"]
     )
     rbc: Union[str, float, int] = Field(
         default="Normal",
@@ -68,16 +68,16 @@ class PatientInputSchema(BaseModel):
         examples=["Not Present", "Present", 0.0]
     )
 
-    # --- Blood Biochemistry & Hematology (11 features) ---
+    # --- Blood Biochemistry & Hematology (9 features) ---
     bgr: str = Field(
         default="< 112",
         description="Random Blood Glucose level in mg/dL interval (e.g., '< 112', '112 - 154', '154 - 196', '≥ 448')",
         examples=["< 112", "112 - 154"]
     )
     bu: str = Field(
-        default="< 34",
-        description="Blood Urea level in mg/dL interval (e.g., '< 48.1', '< 34', '48.1 - 86.2', '≥ 352.9')",
-        examples=["< 48.1", "< 34"]
+        default="< 48.1",
+        description="Blood Urea level in mg/dL interval (e.g., '< 48.1', '48.1 - 86.2', '86.2 - 124.3', '≥ 352.9')",
+        examples=["< 48.1", "48.1 - 86.2"]
     )
     sod: str = Field(
         default="138 - 143",
@@ -85,14 +85,14 @@ class PatientInputSchema(BaseModel):
         examples=["138 - 143"]
     )
     sc: str = Field(
-        default="< 1.2",
-        description="Serum Creatinine level in mg/dL interval (e.g., '< 3.65', '< 1.2', '3.65 - 6.8', '≥ 28.85')",
-        examples=["< 3.65", "< 1.2"]
+        default="< 3.65",
+        description="Serum Creatinine level in mg/dL interval (e.g., '< 3.65', '3.65 - 6.8', '6.8 - 9.95', '≥ 28.85')",
+        examples=["< 3.65", "3.65 - 6.8"]
     )
     pot: str = Field(
-        default="3.5 - 4.5",
-        description="Serum Potassium level in mEq/L interval (e.g., '< 7.31', '3.5 - 4.5', '38.18 - 42.59')",
-        examples=["< 7.31", "3.5 - 4.5"]
+        default="< 7.31",
+        description="Serum Potassium level in mEq/L interval (e.g., '< 7.31', '38.18 - 42.59')",
+        examples=["< 7.31", "38.18 - 42.59"]
     )
     hemo: str = Field(
         default="13.9 - 15.2",
@@ -114,13 +114,8 @@ class PatientInputSchema(BaseModel):
         description="White Blood Cell Count in cells/cumm interval (e.g., '4980 - 7360', '< 4980', '19260 - 21640')",
         examples=["4980 - 7360"]
     )
-    gfr: Optional[str] = Field(
-        default="≥ 90",
-        description="Glomerular Filtration Rate in mL/min/1.73m² (e.g., '≥ 90', '60 - 89', '30 - 59', '< 15')",
-        examples=["≥ 90"]
-    )
 
-    # --- Comorbidities & Clinical Symptoms (7 features) ---
+    # --- Comorbidities & Clinical Symptoms (6 features) ---
     htn: Union[str, float, int] = Field(
         default="No",
         description="Hypertension diagnosis (e.g., 'No', 'Yes', 0.0, 1.0)",
@@ -151,11 +146,6 @@ class PatientInputSchema(BaseModel):
         description="Clinical Anemia (e.g., 'No', 'Yes', 0.0, 1.0)",
         examples=["No", "Yes", 0.0]
     )
-    stage: Optional[str] = Field(
-        default="Stage 1",
-        description="Clinical CKD staging category (e.g., 'Stage 1', 'Stage 2', 'Stage 3', 'Stage 4', 'Stage 5')",
-        examples=["Stage 1"]
-    )
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -165,30 +155,28 @@ class PatientInputSchema(BaseModel):
                 "age": "59 - 66",
                 "bp_diastolic": 76.0,
                 "bp_limit": "70 - 80",
-                "sg": "1.020",
-                "al": "Normal",
-                "su": "Normal",
+                "sg": "1.019 - 1.021",
+                "al": "< 0",
+                "su": "< 0",
                 "rbc": "Normal",
                 "pc": "Normal",
                 "pcc": "Not Present",
                 "ba": "Not Present",
                 "bgr": "< 112",
-                "bu": "< 34",
+                "bu": "< 48.1",
                 "sod": "138 - 143",
-                "sc": "< 1.2",
-                "pot": "3.5 - 4.5",
+                "sc": "< 3.65",
+                "pot": "< 7.31",
                 "hemo": "13.9 - 15.2",
                 "pcv": "41.3 - 45.2",
                 "rbcc": "5.05 - 5.64",
                 "wbcc": "4980 - 7360",
-                "gfr": "≥ 90",
                 "htn": "No",
                 "dm": "No",
                 "cad": "No",
                 "appet": "Good",
                 "pe": "No",
-                "ane": "No",
-                "stage": "Stage 1"
+                "ane": "No"
             }
         }
     )

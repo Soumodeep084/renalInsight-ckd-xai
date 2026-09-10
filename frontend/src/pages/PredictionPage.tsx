@@ -6,7 +6,6 @@ import { PatientInfoSection } from '../components/form/PatientInfoSection';
 import { KidneyUrineSection } from '../components/form/KidneyUrineSection';
 import { BloodTestSection } from '../components/form/BloodTestSection';
 import { SymptomsSection } from '../components/form/SymptomsSection';
-import { StageSection } from '../components/form/StageSection';
 import { ErrorState } from '../components/common/ErrorState';
 import { LoadingState } from '../components/common/LoadingState';
 import { Disclaimer } from '../components/common/Disclaimer';
@@ -15,9 +14,7 @@ import {
   RotateCcw,
   Sparkles,
   CheckCircle2,
-  Stethoscope,
   ArrowRight,
-  ShieldAlert,
 } from 'lucide-react';
 
 export const PredictionPage: React.FC = () => {
@@ -57,7 +54,7 @@ export const PredictionPage: React.FC = () => {
         <div className="relative z-10 space-y-4 max-w-3xl">
           <div className="inline-flex items-center gap-2 px-3 py-1 bg-teal-500/20 text-teal-300 rounded-full text-xs font-semibold border border-teal-400/30">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>28-Feature Validated Inference Schema</span>
+            <span>25-Feature Validated Inference Schema</span>
           </div>
 
           <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
@@ -65,7 +62,7 @@ export const PredictionPage: React.FC = () => {
           </h2>
 
           <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-normal">
-            Enter physiological and laboratory markers across the 5 structured sections below. You can also load standard clinical presets to evaluate model behavior.
+            Enter physiological and laboratory markers across the 4 structured sections below (Patient Demographics, Kidney & Urinalysis, Blood Panel, and Medical Conditions). You can also load standard clinical presets to evaluate model behavior.
           </p>
 
           {/* Quick Demo Presets */}
@@ -76,11 +73,10 @@ export const PredictionPage: React.FC = () => {
                 key={preset.id}
                 type="button"
                 onClick={() => loadPreset(preset.id)}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 border cursor-pointer ${
-                  activePreset === preset.id
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 border cursor-pointer ${activePreset === preset.id
                     ? 'bg-teal-500 text-white border-teal-400 shadow-md'
                     : 'bg-slate-800/90 text-slate-300 border-slate-700 hover:bg-slate-700 hover:text-white'
-                }`}
+                  }`}
               >
                 {activePreset === preset.id && <CheckCircle2 className="w-3.5 h-3.5" />}
                 <span>{preset.name}</span>
@@ -115,36 +111,29 @@ export const PredictionPage: React.FC = () => {
         <LoadingState />
       ) : (
         <form id="clinical-assessment-form" onSubmit={handleSubmit} className="space-y-6">
-          {/* Section 1: Demographics */}
+          {/* Section 1: Demographics (3 features) */}
           <PatientInfoSection
             formData={formData}
             onChange={handleFieldChange}
             errors={errors}
           />
 
-          {/* Section 2: Kidney & Urinalysis */}
+          {/* Section 2: Kidney & Urinalysis (7 features) */}
           <KidneyUrineSection
             formData={formData}
             onChange={handleFieldChange}
             errors={errors}
           />
 
-          {/* Section 3: Serum Blood Biochemistry & Hematology */}
+          {/* Section 3: Serum Blood Biochemistry & Hematology (9 features) */}
           <BloodTestSection
             formData={formData}
             onChange={handleFieldChange}
             errors={errors}
           />
 
-          {/* Section 4: Clinical Symptoms & History */}
+          {/* Section 4: Clinical Symptoms & History (6 features) */}
           <SymptomsSection
-            formData={formData}
-            onChange={handleFieldChange}
-            errors={errors}
-          />
-
-          {/* Section 5: Dataset Staging Parameter */}
-          <StageSection
             formData={formData}
             onChange={handleFieldChange}
             errors={errors}
@@ -152,10 +141,6 @@ export const PredictionPage: React.FC = () => {
 
           {/* Submit Action Bar */}
           <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4 sticky bottom-4 z-20">
-            <div className="text-xs text-slate-500">
-              <span className="font-semibold text-slate-800">28 Input Features</span> configured for FastAPI inference.
-            </div>
-
             <div className="flex items-center gap-3 w-full sm:w-auto">
               <button
                 type="button"

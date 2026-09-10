@@ -7,6 +7,7 @@ import { Footer } from './components/common/Footer';
 import { DashboardPage } from './pages/DashboardPage';
 import { PredictionPage } from './pages/PredictionPage';
 import { ResultsPage } from './pages/ResultsPage';
+import { GuidePage } from './pages/GuidePage';
 import { AboutPage } from './pages/AboutPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 
@@ -30,8 +31,11 @@ function AppLayout() {
         <main className="flex-1">
           <Routes>
             <Route path="/" element={<DashboardPage />} />
+            <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/predict" element={<PredictionPage />} />
+            <Route path="/prediction" element={<PredictionPage />} />
             <Route path="/results" element={<ResultsPage />} />
+            <Route path="/guide" element={<GuidePage />} />
             <Route path="/about" element={<AboutPage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Routes>

@@ -24,11 +24,10 @@ export const RiskSummary: React.FC<RiskSummaryProps> = ({ result }) => {
         <div className="flex justify-between items-center py-1.5 border-b border-slate-100">
           <span className="text-slate-500 font-medium">Prediction:</span>
           <span
-            className={`font-bold px-2.5 py-0.5 rounded-md ${
-              result.prediction === 'CKD'
-                ? 'bg-rose-100 text-rose-800'
-                : 'bg-teal-100 text-teal-900'
-            }`}
+            className={`font-bold px-2.5 py-0.5 rounded-md ${result.prediction === 'CKD'
+              ? 'bg-rose-100 text-rose-800'
+              : 'bg-teal-100 text-teal-900'
+              }`}
           >
             {result.prediction}
           </span>
@@ -50,7 +49,7 @@ export const RiskSummary: React.FC<RiskSummaryProps> = ({ result }) => {
           </span>
         </div>
 
-        <div className="flex justify-between items-center py-1.5 border-b border-slate-100">
+        {/* <div className="flex justify-between items-center py-1.5 border-b border-slate-100">
           <span className="text-slate-500 font-medium flex items-center gap-1">
             <Cpu className="w-3.5 h-3.5 text-slate-400" />
             <span>ML Model:</span>
@@ -64,12 +63,12 @@ export const RiskSummary: React.FC<RiskSummaryProps> = ({ result }) => {
             <span>Explainability:</span>
           </span>
           <span className="font-semibold text-slate-800">{result.explainabilityMethod}</span>
-        </div>
+        </div> */}
       </div>
 
       <div className="pt-2 text-[11px] text-slate-400 leading-tight bg-slate-50 p-3 rounded-xl border border-slate-200/60 flex items-start gap-2">
-        <ShieldCheck className="w-4 h-4 text-slate-400 shrink-0" />
-        <span>
+        <ShieldCheck className="w-4 h-4 text-slate-500 shrink-0" />
+        <span className='font-bold text-slate-500'>
           This algorithm is an unvalidated academic prototype. Performance metrics are restricted to research dataset parameters.
         </span>
       </div>

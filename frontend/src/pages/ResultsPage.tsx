@@ -1,5 +1,5 @@
-import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { usePrediction } from '../context/PredictionContext';
 import { PredictionCard } from '../components/result/PredictionCard';
 import { ProbabilityChart } from '../components/result/ProbabilityChart';
@@ -7,21 +7,20 @@ import { RiskSummary } from '../components/result/RiskSummary';
 import { ShapExplanation } from '../components/result/ShapExplanation';
 import { FeatureImportanceChart } from '../components/result/FeatureImportanceChart';
 import { PatientSummary } from '../components/result/PatientSummary';
+import { CkdGuideSection } from '../components/guide/CkdGuideSection';
 import { EmptyState } from '../components/common/EmptyState';
 import { Disclaimer } from '../components/common/Disclaimer';
 import {
-  Brain,
-  Stethoscope,
   Edit3,
   RotateCcw,
-  Sparkles,
-  ArrowRight,
   FileCheck2,
+  BookOpen,
 } from 'lucide-react';
 
 export const ResultsPage: React.FC = () => {
   const navigate = useNavigate();
   const { result, formData, resetForm } = usePrediction();
+  const guideRef = useRef<HTMLDivElement>(null);
 
   if (!result) {
     return (
@@ -30,6 +29,12 @@ export const ResultsPage: React.FC = () => {
       </div>
     );
   }
+
+  const scrollToGuide = () => {
+    if (guideRef.current) {
+      guideRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 animate-fade-in">
@@ -51,6 +56,15 @@ export const ResultsPage: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={scrollToGuide}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2.5 bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-200 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+          >
+            <BookOpen className="w-3.5 h-3.5" />
+            <span>Understanding Results Guide</span>
+          </button>
+
           <button
             type="button"
             onClick={() => navigate('/predict')}
@@ -95,6 +109,7 @@ export const ResultsPage: React.FC = () => {
         increasingFactors={result.increasingFactors}
         decreasingFactors={result.decreasingFactors}
         allFactors={result.allFactors}
+        onOpenGuide={scrollToGuide}
       />
 
       {/* Global Feature Importance */}
@@ -105,6 +120,11 @@ export const ResultsPage: React.FC = () => {
         inputData={formData}
         onEditInputs={() => navigate('/predict')}
       />
+
+      {/* Beginner-Friendly 25 Features & SHAP Guide Section */}
+      <div ref={guideRef} className="pt-4">
+        <CkdGuideSection />
+      </div>
 
       {/* Full Medical Disclaimer */}
       <Disclaimer />

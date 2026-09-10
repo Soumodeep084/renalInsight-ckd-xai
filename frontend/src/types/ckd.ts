@@ -3,14 +3,12 @@ export type RiskLevel = 'Low' | 'Moderate' | 'High';
 export type PredictionTarget = 'CKD' | 'NOT CKD';
 
 export interface PatientInput {
-  // 1. Patient Information
+  // 1. Patient Information & Resting Hemodynamics (3 features)
   age: string;
-
-  // 2. Blood Pressure
   bp_diastolic: number;
   bp_limit: string;
 
-  // 3. Kidney & Urine Parameters
+  // 2. Kidney & Urine Parameters (7 features)
   sg: string; // Specific Gravity
   al: string; // Albumin
   su: string; // Sugar
@@ -19,7 +17,7 @@ export interface PatientInput {
   pcc: string; // Pus Cell Clumps
   ba: string; // Bacteria
 
-  // 4. Blood Test Parameters
+  // 3. Blood Test Parameters (9 features)
   bgr: string; // Blood Glucose Random
   bu: string; // Blood Urea
   sod: string; // Sodium
@@ -29,16 +27,14 @@ export interface PatientInput {
   pcv: string; // Packed Cell Volume
   rbcc: string; // RBC Count
   wbcc: string; // WBC Count
-  gfr: string; // Glomerular Filtration Rate
 
-  // 5. Medical Conditions & Symptoms
+  // 4. Medical Conditions & Symptoms (6 features)
   htn: string; // Hypertension (Yes/No)
   dm: string; // Diabetes Mellitus (Yes/No)
   cad: string; // Coronary Artery Disease (Yes/No)
   appet: string; // Appetite (Good/Poor)
   pe: string; // Pedal Edema (Yes/No)
   ane: string; // Anemia (Yes/No)
-  stage: string; // CKD Stage (Stage 1 to Stage 5)
 }
 
 export interface ShapFactor {
@@ -48,6 +44,9 @@ export interface ShapFactor {
   shapValue: number;
   direction: 'increasing' | 'decreasing';
   category: 'Kidney' | 'Blood' | 'Symptom' | 'Demographic';
+  generalExplanation?: string;
+  medicalExplanation?: string;
+  influenceStrength?: 'Strong' | 'Moderate' | 'Mild';
   description?: string;
 }
 

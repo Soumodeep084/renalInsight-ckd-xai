@@ -9,6 +9,7 @@ import {
   LayoutDashboard,
   Stethoscope,
   FileCheck2,
+  BookOpen,
 } from 'lucide-react';
 import { checkApiHealth } from '../../services/predictionService';
 
@@ -30,7 +31,9 @@ export const Header: React.FC<HeaderProps> = ({ onMobileMenuToggle }) => {
 
   useEffect(() => {
     verifyHealth();
-    const interval = setInterval(verifyHealth, 15000);
+
+    // 60000ms = 1 minute 
+    const interval = setInterval(verifyHealth, 60000);
     return () => clearInterval(interval);
   }, []);
 
@@ -45,7 +48,7 @@ export const Header: React.FC<HeaderProps> = ({ onMobileMenuToggle }) => {
       case '/predict':
         return {
           title: 'CKD Risk Prediction Form',
-          subtitle: 'Enter patient parameters across 28 validated features for real-time inference',
+          subtitle: 'Enter patient parameters across 25 validated features for real-time inference',
           icon: Stethoscope,
         };
       case '/results':
@@ -53,6 +56,12 @@ export const Header: React.FC<HeaderProps> = ({ onMobileMenuToggle }) => {
           title: 'XAI Prediction & Explainability Report',
           subtitle: 'Quantitative SHAP feature attribution and clinical risk breakdown',
           icon: FileCheck2,
+        };
+      case '/guide':
+        return {
+          title: 'Understanding Your Results & CKD Guide',
+          subtitle: 'Beginner-friendly explanation of 25 clinical features and SHAP reasoning',
+          icon: BookOpen,
         };
       case '/about':
         return {
@@ -101,27 +110,25 @@ export const Header: React.FC<HeaderProps> = ({ onMobileMenuToggle }) => {
           <button
             type="button"
             onClick={verifyHealth}
-            title="Click to refresh FastAPI backend health status"
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer ${
-              isBackendOnline === true
-                ? 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100'
-                : isBackendOnline === false
+            title="Click to refresh server health status"
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer ${isBackendOnline === true
+              ? 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100'
+              : isBackendOnline === false
                 ? 'bg-rose-50 text-rose-800 border-rose-200 hover:bg-rose-100'
                 : 'bg-slate-100 text-slate-700 border-slate-200'
-            }`}
+              }`}
           >
             <span className="relative flex h-2 w-2">
               {isBackendOnline === true && (
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
               )}
               <span
-                className={`relative inline-flex rounded-full h-2 w-2 ${
-                  isBackendOnline === true
-                    ? 'bg-emerald-500'
-                    : isBackendOnline === false
+                className={`relative inline-flex rounded-full h-2 w-2 ${isBackendOnline === true
+                  ? 'bg-emerald-500'
+                  : isBackendOnline === false
                     ? 'bg-rose-500'
                     : 'bg-amber-400'
-                }`}
+                  }`}
               ></span>
             </span>
             <Server className="w-3.5 h-3.5 hidden sm:inline-block" />
@@ -129,10 +136,10 @@ export const Header: React.FC<HeaderProps> = ({ onMobileMenuToggle }) => {
               {isChecking
                 ? 'Checking...'
                 : isBackendOnline === true
-                ? 'FastAPI Connected'
-                : isBackendOnline === false
-                ? 'Backend Offline'
-                : 'Checking API...'}
+                  ? 'Server Connected'
+                  : isBackendOnline === false
+                    ? 'Server Offline'
+                    : 'Checking API...'}
             </span>
             <span className="sm:hidden font-bold">
               {isBackendOnline === true ? 'API Online' : isBackendOnline === false ? 'API Offline' : 'API...'}

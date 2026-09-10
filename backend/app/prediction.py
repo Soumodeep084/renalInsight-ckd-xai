@@ -30,7 +30,6 @@ FEATURE_CATEGORY_MAP: Dict[str, str] = {
     "pc": "Kidney",
     "pcc": "Kidney",
     "ba": "Kidney",
-    "gfr": "Kidney",
     "bgr": "Blood",
     "bu": "Blood",
     "sod": "Blood",
@@ -51,7 +50,6 @@ FEATURE_CATEGORY_MAP: Dict[str, str] = {
     "bp_diastolic": "Demographic",
     "bp limit": "Demographic",
     "bp_limit": "Demographic",
-    "stage": "Demographic",
 }
 
 FEATURE_DISPLAY_NAMES: Dict[str, str] = {
@@ -80,8 +78,6 @@ FEATURE_DISPLAY_NAMES: Dict[str, str] = {
     "pe": "Pedal Edema",
     "ane": "Clinical Anemia",
     "age": "Patient Age",
-    "gfr": "Glomerular Filtration Rate",
-    "stage": "CKD Clinical Stage",
 }
 
 # Clinical descriptions for key biomarkers

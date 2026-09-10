@@ -13,7 +13,6 @@ import {
   PCV_OPTIONS,
   RBCC_OPTIONS,
   WBCC_OPTIONS,
-  GFR_OPTIONS,
 } from '../../data/formOptions';
 import { PatientInput } from '../../types/ckd';
 
@@ -33,7 +32,7 @@ export const BloodTestSection: React.FC<BloodTestSectionProps> = ({
       title="Blood Test Parameters"
       subtitle="Serum biochemistry, renal retention markers, electrolytes & hematology panel"
       icon={TestTube}
-      badge="Serum Laboratory"
+      badge="Serum Laboratory (9 Markers)"
     >
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {/* Blood Glucose */}
@@ -78,7 +77,7 @@ export const BloodTestSection: React.FC<BloodTestSectionProps> = ({
           label="Serum Creatinine"
           unit="mg/dL"
           required
-          tooltip="Primary biomarker for kidney filtration function. Higher values indicate reduced GFR."
+          tooltip="Primary biomarker for kidney filtration function. Higher values indicate reduced renal clearance."
           error={errors.sc}
         >
           <SelectField
@@ -195,25 +194,6 @@ export const BloodTestSection: React.FC<BloodTestSectionProps> = ({
             onChange={(val) => onChange('wbcc', val)}
             options={WBCC_OPTIONS}
             hasError={!!errors.wbcc}
-          />
-        </FormField>
-
-        {/* GFR */}
-        <FormField
-          id="gfr"
-          label="Glomerular Filtration Rate (GFR)"
-          unit="mL/min/1.73m²"
-          required
-          tooltip="Best overall index of kidney function. Lower values (<60) represent progressive loss of renal function."
-          error={errors.gfr}
-          className="md:col-span-2 lg:col-span-1"
-        >
-          <SelectField
-            id="gfr"
-            value={formData.gfr}
-            onChange={(val) => onChange('gfr', val)}
-            options={GFR_OPTIONS}
-            hasError={!!errors.gfr}
           />
         </FormField>
       </div>

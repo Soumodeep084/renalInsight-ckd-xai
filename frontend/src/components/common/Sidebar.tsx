@@ -4,6 +4,7 @@ import {
   LayoutDashboard,
   Stethoscope,
   Activity,
+  BookOpen,
   Info,
   ShieldAlert,
   X,
@@ -38,6 +39,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile })
       icon: Activity,
       badge: result ? (result.prediction === 'CKD' ? 'CKD' : 'Not CKD') : null,
       badgeColor: result?.prediction === 'CKD' ? 'bg-rose-500 text-white' : 'bg-teal-500 text-slate-950',
+    },
+    {
+      to: '/guide',
+      label: 'CKD & Feature Guide',
+      icon: BookOpen,
+      badge: '25 Features',
+      badgeColor: 'bg-teal-700 text-white',
     },
     {
       to: '/about',
