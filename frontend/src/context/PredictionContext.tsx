@@ -1,8 +1,8 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { PatientInput, PredictionResult } from '../types/ckd';
 import { DEFAULT_PATIENT_INPUT } from '../data/formOptions';
 import { PATIENT_PRESETS } from '../data/patientPresets';
-import { analyzeCKDRisk } from '../services/predictionService';
+import { analyzeCKDRisk, checkApiHealth } from '../services/predictionService';
 
 interface PredictionContextType {
   formData: PatientInput;
@@ -11,6 +11,9 @@ interface PredictionContextType {
   errorMsg: string | null;
   errors: Record<string, string>;
   activePreset: string | null;
+  isBackendOnline: boolean | null;
+  isCheckingBackend: boolean;
+  verifyHealth: () => Promise<boolean>;
   handleFieldChange: (field: keyof PatientInput, value: any) => void;
   loadPreset: (presetId: string) => void;
   resetForm: () => void;
@@ -27,6 +30,35 @@ export const PredictionProvider: React.FC<{ children: ReactNode }> = ({ children
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [activePreset, setActivePreset] = useState<string | null>(null);
+  const [isBackendOnline, setIsBackendOnline] = useState<boolean | null>(null);
+  const [isCheckingBackend, setIsCheckingBackend] = useState(false);
+
+  const verifyHealth = async (): Promise<boolean> => {
+    setIsCheckingBackend(true);
+    try {
+      const res = await checkApiHealth();
+      setIsBackendOnline(res.healthy);
+      return res.healthy;
+    } catch {
+      setIsBackendOnline(false);
+      return false;
+    } finally {
+      setIsCheckingBackend(false);
+    }
+  };
+
+  useEffect(() => {
+    // Initial health check on page load
+    verifyHealth();
+
+    // Setup 2-minute recurring polling only if enabled via env var
+    const enablePolling = import.meta.env.VITE_ENABLE_HEALTH_POLLING === 'true';
+    if (!enablePolling) return;
+
+    const TWO_MINUTES_MS = 2 * 60 * 1000;
+    const interval = setInterval(verifyHealth, TWO_MINUTES_MS);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleFieldChange = (field: keyof PatientInput, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -99,6 +131,7 @@ export const PredictionProvider: React.FC<{ children: ReactNode }> = ({ children
     try {
       const res = await analyzeCKDRisk(formData);
       setResult(res);
+      setIsBackendOnline(true);
       return true;
     } catch (err: any) {
       setErrorMsg(err?.message || 'Unable to execute prediction. Please review the input parameters.');
@@ -117,6 +150,9 @@ export const PredictionProvider: React.FC<{ children: ReactNode }> = ({ children
         errorMsg,
         errors,
         activePreset,
+        isBackendOnline,
+        isCheckingBackend,
+        verifyHealth,
         handleFieldChange,
         loadPreset,
         resetForm,

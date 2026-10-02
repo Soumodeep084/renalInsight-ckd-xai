@@ -11,7 +11,7 @@ import {
   FileCheck2,
   BookOpen,
 } from 'lucide-react';
-import { checkApiHealth } from '../../services/predictionService';
+import { usePrediction } from '../../context/PredictionContext';
 
 interface HeaderProps {
   onMobileMenuToggle: () => void;
@@ -19,28 +19,7 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({ onMobileMenuToggle }) => {
   const location = useLocation();
-  const [isBackendOnline, setIsBackendOnline] = useState<boolean | null>(null);
-  const [isChecking, setIsChecking] = useState(false);
-
-  const verifyHealth = async () => {
-    setIsChecking(true);
-    const res = await checkApiHealth();
-    setIsBackendOnline(res.healthy);
-    setIsChecking(false);
-  };
-
-  useEffect(() => {
-    // Initial health checkup when the app is opened in the browser
-    verifyHealth();
-
-    // Only set up recurring polling (every 2 minutes) if explicitly enabled via environment variable
-    const enablePolling = import.meta.env.VITE_ENABLE_HEALTH_POLLING === 'true';
-    if (!enablePolling) return;
-
-    const TWO_MINUTES_MS = 2 * 60 * 1000; // 120,000 ms
-    const interval = setInterval(verifyHealth, TWO_MINUTES_MS);
-    return () => clearInterval(interval);
-  }, []);
+  const { isBackendOnline, isCheckingBackend, verifyHealth } = usePrediction();
 
   const getPageMeta = () => {
     switch (location.pathname) {
@@ -138,7 +117,7 @@ export const Header: React.FC<HeaderProps> = ({ onMobileMenuToggle }) => {
             </span>
             <Server className="w-3.5 h-3.5 hidden sm:inline-block" />
             <span className="hidden sm:inline">
-              {isChecking
+              {isCheckingBackend
                 ? 'Checking...'
                 : isBackendOnline === true
                   ? 'Server Connected'
@@ -147,9 +126,9 @@ export const Header: React.FC<HeaderProps> = ({ onMobileMenuToggle }) => {
                     : 'Checking...'}
             </span>
             <span className="sm:hidden font-bold">
-              {isBackendOnline === true ? 'Server Online' : isBackendOnline === false ? 'Server Offline' : 'Checking...'}
+              {isCheckingBackend ? 'Checking...' : isBackendOnline === true ? 'Server Online' : isBackendOnline === false ? 'Server Offline' : 'Checking...'}
             </span>
-            <RefreshCw className={`w-3 h-3 ml-0.5 ${isChecking ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-3 h-3 ml-0.5 ${isCheckingBackend ? 'animate-spin' : ''}`} />
           </button>
         </div>
       </div>

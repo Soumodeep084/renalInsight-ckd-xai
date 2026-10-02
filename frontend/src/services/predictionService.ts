@@ -109,7 +109,7 @@ export async function analyzeCKDRisk(input: PatientInput): Promise<PredictionRes
     });
   } catch {
     throw new Error(
-      `Unable to connect to the RenalInsight backend at ${API_BASE_URL}. Please ensure the FastAPI server is running with 'uv run uvicorn app.main:app --reload'.`
+      'Unable to connect to the prediction server. Please verify your internet connection or check if the server is active, then try again.'
     );
   }
 
