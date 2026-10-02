@@ -1,6 +1,6 @@
 # RenalInsight CKD Prediction & Explainable AI (XAI) Backend
 
-Production-ready FastAPI backend for Chronic Kidney Disease (CKD) risk evaluation and local biomarker attribution powered by SHAP (SHapley Additive exPlanations).
+Production-ready FastAPI backend for Chronic Kidney Disease (CKD) risk evaluation and local biomarker attribution powered by Tree SHAP (SHapley Additive exPlanations) and a Decision Tree Classifier trained on the UCI 336 Dataset (400 records, 24 raw features).
 
 ---
 
@@ -16,7 +16,7 @@ Production-ready FastAPI backend for Chronic Kidney Disease (CKD) risk evaluatio
 cd backend
 
 # Start development server with hot-reload
-uv run uvicorn app.main:app --reload
+uv run uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
 The server will start at `http://127.0.0.1:8000`.
@@ -35,7 +35,7 @@ The server will start at `http://127.0.0.1:8000`.
 | `GET` | `/` | API status, metadata & navigation links |
 | `GET` | `/health` | Application health and model readiness check |
 | `GET` | `/model-info` | Model metadata, evaluation metrics, and feature lists |
-| `POST` | `/predict` | Machine learning inference + SHAP local explanations |
+| `POST` | `/predict` | Machine learning inference + Tree SHAP local explanations |
 
 ---
 
@@ -43,49 +43,58 @@ The server will start at `http://127.0.0.1:8000`.
 
 ```json
 {
-  "age": "59 - 66",
-  "bp_diastolic": 76.0,
-  "bp_limit": "70 - 80",
-  "sg": "1.020",
-  "al": "Normal",
-  "su": "Normal",
-  "rbc": "Normal",
-  "pc": "Normal",
-  "pcc": "Not Present",
-  "ba": "Not Present",
-  "bgr": "< 112",
-  "bu": "< 34",
-  "sod": "138 - 143",
-  "sc": "< 1.2",
-  "pot": "3.5 - 4.5",
-  "hemo": "13.9 - 15.2",
-  "pcv": "41.3 - 45.2",
-  "rbcc": "5.05 - 5.64",
-  "wbcc": "4980 - 7360",
-  "gfr": "≥ 90",
-  "htn": "No",
-  "dm": "No",
-  "cad": "No",
-  "appet": "Good",
-  "pe": "No",
-  "ane": "No",
-  "stage": "Stage 1"
+  "age": 48.0,
+  "bp": 80.0,
+  "sg": 1.020,
+  "al": 1.0,
+  "su": 0.0,
+  "rbc": "normal",
+  "pc": "normal",
+  "pcc": "notpresent",
+  "ba": "notpresent",
+  "bgr": 121.0,
+  "bu": 36.0,
+  "sc": 1.2,
+  "sod": 138.0,
+  "pot": 4.4,
+  "hemo": 15.4,
+  "pcv": 44.0,
+  "wbcc": 7800.0,
+  "rbcc": 5.2,
+  "htn": "yes",
+  "dm": "yes",
+  "cad": "no",
+  "appet": "good",
+  "pe": "no",
+  "ane": "no"
 }
 ```
 
 ### Sample Prediction Response
 ```json
 {
-  "prediction": "NOT CKD",
-  "probability": 12.41,
-  "not_ckd_probability": 87.59,
-  "risk_level": "Low",
-  "model_name": "Logistic Regression (XAI-Enabled)",
-  "explainability_method": "SHAP (SHapley Additive exPlanations)",
-  "timestamp": "2026-09-07T16:15:11.834000Z",
-  "increasing_factors": [ ... ],
-  "decreasing_factors": [ ... ],
-  "all_factors": [ ... ]
+  "prediction": "CKD",
+  "probability": 100.0,
+  "not_ckd_probability": 0.0,
+  "risk_level": "High",
+  "model_name": "Decision Tree (XAI-Enabled)",
+  "explainability_method": "Tree SHAP (SHapley Additive exPlanations)",
+  "timestamp": "2026-10-02T16:15:11.834000Z",
+  "increasing_factors": [
+    {
+      "feature": "al",
+      "display_feature": "Albumin: 1.0 (al_1.0)",
+      "value": "1.0",
+      "shap_value": 0.38,
+      "direction": "increasing",
+      "category": "Kidney",
+      "plain_explanation": "Detectable protein in the urine indicates early filtration stress.",
+      "medical_explanation": "Albuminuria signifies compromised podocyte slit diaphragm integrity.",
+      "unit": "scale 0-5"
+    }
+  ],
+  "decreasing_factors": [],
+  "all_factors": []
 }
 ```
 
@@ -106,14 +115,14 @@ backend/
 ├── app/
 │   ├── __init__.py
 │   ├── config.py       # App configuration and CORS
-│   ├── schemas.py      # Pydantic validation & response models
-│   ├── prediction.py   # Model loading, inference & SHAP explainability
+│   ├── schemas.py      # Pydantic validation (24 features) & response models
+│   ├── prediction.py   # Model loading, inference & Tree SHAP explainability
 │   └── main.py         # FastAPI application, routes, and lifespan
 ├── models/
-│   ├── final_model.joblib
-│   ├── shap_explainer.joblib
-│   ├── feature_names.joblib
-│   └── model_metadata.json
+│   ├── final_model.joblib          # Trained Decision Tree Pipeline
+│   ├── shap_explainer.joblib       # Serialized TreeExplainer
+│   ├── feature_names.joblib        # 34 Encoded feature column list
+│   └── model_metadata.json         # Evaluation metrics (96.25% test accuracy)
 ├── tests/
 │   └── test_endpoints.py
 ├── pyproject.toml
