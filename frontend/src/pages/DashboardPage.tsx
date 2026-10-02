@@ -14,7 +14,7 @@ import {
   BookOpen,
 } from 'lucide-react';
 import { usePrediction } from '../context/PredictionContext';
-import { checkApiHealth, fetchModelInfo } from '../services/predictionService';
+import { fetchModelInfo } from '../services/predictionService';
 import { formatPercentage } from '../utils/formatters';
 import { Disclaimer } from '../components/common/Disclaimer';
 
@@ -23,7 +23,6 @@ export const DashboardPage: React.FC = () => {
   const [modelInfo, setModelInfo] = useState<any>(null);
 
   useEffect(() => {
-    checkApiHealth();
     fetchModelInfo().then((info) => setModelInfo(info)).catch(() => { });
   }, []);
 
@@ -41,7 +40,7 @@ export const DashboardPage: React.FC = () => {
             </span>
             <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-indigo-500/20 text-indigo-300 rounded-full text-xs font-semibold border border-indigo-400/30">
               <GraduationCap className="w-3.5 h-3.5" />
-              <span>College Mini-Project</span>
+              <span>College Data Science Mini-Project</span>
             </span>
           </div>
 

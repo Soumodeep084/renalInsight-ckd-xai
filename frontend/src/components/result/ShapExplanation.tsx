@@ -90,30 +90,27 @@ export const ShapExplanation: React.FC<ShapExplanationProps> = ({
     return (
       <div
         key={cardKey}
-        className={`p-4 sm:p-5 rounded-2xl border transition-all space-y-3 bg-white ${
-          isIncreasing
+        className={`p-4 sm:p-5 rounded-2xl border transition-all space-y-3 bg-white ${isIncreasing
             ? 'border-rose-100 hover:border-rose-300 hover:shadow-xs'
             : 'border-teal-100 hover:border-teal-300 hover:shadow-xs'
-        }`}
+          }`}
       >
         {/* Top Header Row */}
         <div className="flex items-start justify-between gap-3 text-xs sm:text-sm">
           <div className="space-y-1 min-w-0">
             <div className="flex flex-wrap items-center gap-2 font-bold text-slate-900">
               <span
-                className={`w-2.5 h-2.5 rounded-full shrink-0 ${
-                  isIncreasing ? 'bg-rose-500' : 'bg-teal-600'
-                }`}
+                className={`w-2.5 h-2.5 rounded-full shrink-0 ${isIncreasing ? 'bg-rose-500' : 'bg-teal-600'
+                  }`}
               />
               <span className="truncate">{factor.displayFeature}</span>
 
               {/* Direction Indicator Badge */}
               <span
-                className={`text-[10px] font-bold px-2 py-0.5 rounded-md border flex items-center gap-1 ${
-                  isIncreasing
+                className={`text-[10px] font-bold px-2 py-0.5 rounded-md border flex items-center gap-1 ${isIncreasing
                     ? 'bg-rose-50 text-rose-700 border-rose-200'
                     : 'bg-teal-50 text-teal-700 border-teal-200'
-                }`}
+                  }`}
               >
                 {isIncreasing ? (
                   <>
@@ -140,27 +137,24 @@ export const ShapExplanation: React.FC<ShapExplanationProps> = ({
           <div className="flex flex-col items-end gap-1.5 shrink-0">
             <div className="flex items-center gap-1.5">
               <span
-                className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${
-                  strengthStyles[strength]
-                }`}
+                className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${strengthStyles[strength]
+                  }`}
               >
                 {strength} Influence
               </span>
               <span
-                className={`font-mono font-bold text-xs px-2 py-0.5 rounded-md ${
-                  isIncreasing
+                className={`font-mono font-bold text-xs px-2 py-0.5 rounded-md ${isIncreasing
                     ? 'bg-rose-50 text-rose-700 border border-rose-200'
                     : 'bg-teal-50 text-teal-700 border border-teal-200'
-                }`}
+                  }`}
               >
                 {formatShapValue(factor.shapValue)}
               </span>
             </div>
 
             <span
-              className={`text-[10px] px-2 py-0.5 rounded-md border font-semibold ${
-                categoryBadgeColors[factor.category] || 'bg-slate-100 text-slate-700'
-              }`}
+              className={`text-[10px] px-2 py-0.5 rounded-md border font-semibold ${categoryBadgeColors[factor.category] || 'bg-slate-100 text-slate-700'
+                }`}
             >
               {factor.category}
             </span>
@@ -170,11 +164,10 @@ export const ShapExplanation: React.FC<ShapExplanationProps> = ({
         {/* Proportional Magnitude Bar */}
         <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden flex">
           <div
-            className={`h-full rounded-full transition-all duration-500 ease-out ${
-              isIncreasing
+            className={`h-full rounded-full transition-all duration-500 ease-out ${isIncreasing
                 ? 'bg-linear-to-r from-rose-400 to-rose-600'
                 : 'bg-linear-to-r from-teal-400 to-teal-600'
-            }`}
+              }`}
             style={{ width: `${Math.max(barWidthPercent, 4)}%` }}
           />
         </div>
@@ -235,12 +228,12 @@ export const ShapExplanation: React.FC<ShapExplanationProps> = ({
         </div>
 
         {/* Legend */}
-        <div className="flex items-center gap-2 sm:gap-3 bg-slate-50 p-3 rounded-2xl border border-slate-200/80 text-xs shrink-0">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3 bg-slate-50 p-2.5 sm:p-3 rounded-2xl border border-slate-200/80 text-xs w-full sm:w-auto">
           <div className="flex items-center gap-1.5 font-bold text-rose-700">
             <span className="w-3 h-3 bg-rose-500 rounded-sm" />
             <span>+ Increases CKD Risk</span>
           </div>
-          <div className="h-4 w-px bg-slate-200" />
+          <div className="h-4 w-px bg-slate-200 hidden xs:block" />
           <div className="flex items-center gap-1.5 font-bold text-teal-700">
             <span className="w-3 h-3 bg-teal-600 rounded-sm" />
             <span>- Decreases CKD Risk</span>
@@ -250,7 +243,7 @@ export const ShapExplanation: React.FC<ShapExplanationProps> = ({
 
       {/* Beginner Quick Guide Callout */}
       <div className="p-4 bg-teal-50/60 rounded-2xl border border-teal-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-teal-950">
-        <div className="flex items-start gap-2.5">
+        <div className="flex items-start gap-2.5 min-w-0">
           <Sparkles className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" />
           <div>
             <span className="font-bold">How to read these factor cards: </span>
@@ -264,7 +257,7 @@ export const ShapExplanation: React.FC<ShapExplanationProps> = ({
           <button
             type="button"
             onClick={onOpenGuide}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-bold shrink-0 transition-colors shadow-xs cursor-pointer"
+            className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-bold shrink-0 transition-colors shadow-xs cursor-pointer w-full sm:w-auto"
           >
             <BookOpen className="w-3.5 h-3.5" />
             <span>View Full 24-Feature Guide</span>
@@ -275,26 +268,24 @@ export const ShapExplanation: React.FC<ShapExplanationProps> = ({
       {/* Control Bar: View Tabs & Domain Filters */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 pb-2">
         {/* Navigation Tabs */}
-        <div className="flex flex-wrap gap-1 bg-slate-100/90 p-1 rounded-xl text-xs font-bold">
+        <div className="flex flex-wrap gap-1 bg-slate-100/90 p-1 rounded-xl text-xs font-bold w-full sm:w-auto">
           <button
             type="button"
             onClick={() => setActiveTab('split')}
-            className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
-              activeTab === 'split'
+            className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${activeTab === 'split'
                 ? 'bg-white text-slate-900 shadow-xs'
                 : 'text-slate-600 hover:text-slate-900'
-            }`}
+              }`}
           >
             Side-by-Side View
           </button>
           <button
             type="button"
             onClick={() => setActiveTab('increasing')}
-            className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
-              activeTab === 'increasing'
+            className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${activeTab === 'increasing'
                 ? 'bg-rose-500 text-white shadow-xs'
                 : 'text-slate-600 hover:text-rose-700'
-            }`}
+              }`}
           >
             <TrendingUp className="w-3.5 h-3.5" />
             <span>Risk Enhancers ({increasingFactors.length})</span>
@@ -302,11 +293,10 @@ export const ShapExplanation: React.FC<ShapExplanationProps> = ({
           <button
             type="button"
             onClick={() => setActiveTab('decreasing')}
-            className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
-              activeTab === 'decreasing'
+            className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${activeTab === 'decreasing'
                 ? 'bg-teal-600 text-white shadow-xs'
                 : 'text-slate-600 hover:text-teal-700'
-            }`}
+              }`}
           >
             <TrendingDown className="w-3.5 h-3.5" />
             <span>Protective Factors ({decreasingFactors.length})</span>
@@ -314,11 +304,10 @@ export const ShapExplanation: React.FC<ShapExplanationProps> = ({
           <button
             type="button"
             onClick={() => setActiveTab('all')}
-            className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
-              activeTab === 'all'
+            className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${activeTab === 'all'
                 ? 'bg-white text-slate-900 shadow-xs'
                 : 'text-slate-600 hover:text-slate-900'
-            }`}
+              }`}
           >
             <Layers className="w-3.5 h-3.5" />
             <span>All Factors ({allFactors.length})</span>
@@ -326,14 +315,16 @@ export const ShapExplanation: React.FC<ShapExplanationProps> = ({
         </div>
 
         {/* Category Domain Filter */}
-        <div className="flex items-center gap-2 text-xs">
-          <Filter className="w-3.5 h-3.5 text-slate-400" />
-          <span className="text-slate-500 font-semibold hidden sm:inline">Domain:</span>
+        <div className="flex items-center gap-2 text-xs w-full sm:w-auto justify-between sm:justify-end">
+          <div className="flex items-center gap-1.5 text-slate-500 font-semibold">
+            <Filter className="w-3.5 h-3.5 text-slate-400" />
+            <span>Domain:</span>
+          </div>
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value as CategoryFilter)}
             aria-label="Filter SHAP factors by clinical domain category"
-            className="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-teal-500"
+            className="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-teal-500 min-w-32.5"
           >
             <option value="all">All Domains</option>
             <option value="Kidney">Kidney & Urinalysis</option>

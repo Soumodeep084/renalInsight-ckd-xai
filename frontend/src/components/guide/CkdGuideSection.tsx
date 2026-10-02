@@ -215,14 +215,14 @@ export const CkdGuideSection: React.FC<CkdGuideSectionProps> = ({
           </div>
 
           {/* Search Input */}
-          <div className="relative min-w-60">
+          <div className="relative w-full sm:w-64 min-w-0">
             <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               type="text"
               placeholder="Search features (e.g. Creatinine, Sugar)..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-xs text-slate-800  focus:outline-none focus:ring-2 focus:ring-teal-500 focus:bg-white transition-all"
+              className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:bg-white transition-all"
             />
           </div>
         </div>

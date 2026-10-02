@@ -14,7 +14,7 @@ export const Footer: React.FC = () => {
 
         <div className="flex items-center gap-2 text-slate-400">
           <ShieldCheck className="w-4 h-4 text-emerald-500" />
-          <span>Logistic Regression + SHAP Explainability Engine</span>
+          <span>Decision Tree + Tree SHAP Explainability Engine</span>
         </div>
 
         <div className="text-slate-400 font-mono text-[11px]">

@@ -30,10 +30,15 @@ export const Header: React.FC<HeaderProps> = ({ onMobileMenuToggle }) => {
   };
 
   useEffect(() => {
+    // Initial health checkup when the app is opened in the browser
     verifyHealth();
 
-    // 60000ms = 1 minute 
-    const interval = setInterval(verifyHealth, 60000);
+    // Only set up recurring polling (every 2 minutes) if explicitly enabled via environment variable
+    const enablePolling = import.meta.env.VITE_ENABLE_HEALTH_POLLING === 'true';
+    if (!enablePolling) return;
+
+    const TWO_MINUTES_MS = 2 * 60 * 1000; // 120,000 ms
+    const interval = setInterval(verifyHealth, TWO_MINUTES_MS);
     return () => clearInterval(interval);
   }, []);
 
@@ -139,10 +144,10 @@ export const Header: React.FC<HeaderProps> = ({ onMobileMenuToggle }) => {
                   ? 'Server Connected'
                   : isBackendOnline === false
                     ? 'Server Offline'
-                    : 'Checking API...'}
+                    : 'Checking...'}
             </span>
             <span className="sm:hidden font-bold">
-              {isBackendOnline === true ? 'API Online' : isBackendOnline === false ? 'API Offline' : 'API...'}
+              {isBackendOnline === true ? 'Server Online' : isBackendOnline === false ? 'Server Offline' : 'Checking...'}
             </span>
             <RefreshCw className={`w-3 h-3 ml-0.5 ${isChecking ? 'animate-spin' : ''}`} />
           </button>

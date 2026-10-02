@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { usePrediction } from '../context/PredictionContext';
 import { PredictionCard } from '../components/result/PredictionCard';
@@ -7,7 +7,6 @@ import { RiskSummary } from '../components/result/RiskSummary';
 import { ShapExplanation } from '../components/result/ShapExplanation';
 import { FeatureImportanceChart } from '../components/result/FeatureImportanceChart';
 import { PatientSummary } from '../components/result/PatientSummary';
-import { CkdGuideSection } from '../components/guide/CkdGuideSection';
 import { EmptyState } from '../components/common/EmptyState';
 import { Disclaimer } from '../components/common/Disclaimer';
 import {
@@ -15,12 +14,12 @@ import {
   RotateCcw,
   FileCheck2,
   BookOpen,
+  ArrowRight,
 } from 'lucide-react';
 
 export const ResultsPage: React.FC = () => {
   const navigate = useNavigate();
   const { result, formData, resetForm } = usePrediction();
-  const guideRef = useRef<HTMLDivElement>(null);
 
   if (!result) {
     return (
@@ -29,12 +28,6 @@ export const ResultsPage: React.FC = () => {
       </div>
     );
   }
-
-  const scrollToGuide = () => {
-    if (guideRef.current) {
-      guideRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  };
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 animate-fade-in">
@@ -55,20 +48,20 @@ export const ResultsPage: React.FC = () => {
           </h2>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full sm:w-auto">
           <button
             type="button"
-            onClick={scrollToGuide}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2.5 bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-200 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+            onClick={() => navigate('/guide')}
+            className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-200 rounded-xl text-xs font-bold transition-colors cursor-pointer w-full sm:w-auto"
           >
             <BookOpen className="w-3.5 h-3.5" />
-            <span>Understanding Results Guide</span>
+            <span>24-Feature & SHAP Guide</span>
           </button>
 
           <button
             type="button"
             onClick={() => navigate('/predict')}
-            className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+            className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors cursor-pointer flex-1 sm:flex-initial"
           >
             <Edit3 className="w-3.5 h-3.5" />
             <span>Edit Parameters</span>
@@ -80,7 +73,7 @@ export const ResultsPage: React.FC = () => {
               resetForm();
               navigate('/predict');
             }}
-            className="inline-flex items-center gap-1.5 px-5 py-2.5 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-teal-600/20 cursor-pointer"
+            className="inline-flex items-center justify-center gap-1.5 px-5 py-2.5 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-teal-600/20 cursor-pointer flex-1 sm:flex-initial"
           >
             <RotateCcw className="w-3.5 h-3.5" />
             <span>New Assessment</span>
@@ -109,7 +102,6 @@ export const ResultsPage: React.FC = () => {
         increasingFactors={result.increasingFactors}
         decreasingFactors={result.decreasingFactors}
         allFactors={result.allFactors}
-        onOpenGuide={scrollToGuide}
       />
 
       {/* Global Feature Importance */}
@@ -121,9 +113,29 @@ export const ResultsPage: React.FC = () => {
         onEditInputs={() => navigate('/predict')}
       />
 
-      {/* Beginner-Friendly 24 Features & SHAP Guide Section */}
-      <div ref={guideRef} className="pt-4">
-        <CkdGuideSection />
+      {/* Clean Callout Card linking to the Dedicated Guide Page */}
+      <div className="bg-linear-to-r from-teal-900 via-slate-900 to-slate-900 rounded-3xl p-6 sm:p-8 text-white shadow-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+        <div className="space-y-2 max-w-2xl">
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-teal-500/20 text-teal-300 rounded-full text-xs font-semibold border border-teal-400/30">
+            <BookOpen className="w-3.5 h-3.5" />
+            <span>Reference & Tutorial</span>
+          </div>
+          <h3 className="text-xl font-bold tracking-tight text-white">
+            Need help understanding these clinical biomarkers?
+          </h3>
+          <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+            Visit the dedicated <strong>24-Feature & SHAP Guide</strong> to explore physiological normal ranges, KDIGO significance, and the cooperative game theory behind SHAP attributions.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => navigate('/guide')}
+          className="inline-flex items-center gap-2 px-6 py-3 bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold rounded-xl text-xs sm:text-sm transition-all hover:scale-[1.02] shrink-0 cursor-pointer shadow-md"
+        >
+          <span>Open Full Guide Page</span>
+          <ArrowRight className="w-4 h-4" />
+        </button>
       </div>
 
       {/* Full Medical Disclaimer */}

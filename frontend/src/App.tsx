@@ -15,7 +15,7 @@ function AppLayout() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans text-slate-900 selection:bg-teal-500 selection:text-white">
+    <div className="min-h-screen bg-slate-50 flex flex-col font-sans text-slate-900 selection:bg-teal-500 selection:text-white w-full max-w-full overflow-x-hidden">
       {/* Navigation Sidebar */}
       <Sidebar
         isOpenMobile={isMobileMenuOpen}
@@ -23,12 +23,12 @@ function AppLayout() {
       />
 
       {/* Main Content Area (Offset for Desktop Fixed Sidebar) */}
-      <div className="lg:pl-64 flex-1 flex flex-col min-w-0">
+      <div className="lg:pl-64 flex-1 flex flex-col min-w-0 w-full max-w-full overflow-x-hidden">
         {/* Dynamic Route Header */}
         <Header onMobileMenuToggle={() => setIsMobileMenuOpen(!isMobileMenuOpen)} />
 
         {/* Dynamic View Router */}
-        <main className="flex-1">
+        <main className="flex-1 w-full max-w-full overflow-x-hidden">
           <Routes>
             <Route path="/" element={<DashboardPage />} />
             <Route path="/dashboard" element={<DashboardPage />} />

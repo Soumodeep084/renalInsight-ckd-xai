@@ -38,19 +38,19 @@ export const FeatureImportanceChart: React.FC<FeatureImportanceChartProps> = ({ 
       </div>
 
       {/* Bar Chart using Recharts */}
-      <div className="h-80 w-full pt-2">
+      <div className="h-80 w-full min-w-0 overflow-hidden pt-2">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
             data={sortedData}
             layout="vertical"
-            margin={{ top: 5, right: 30, left: 40, bottom: 5 }}
+            margin={{ top: 5, right: 15, left: 0, bottom: 5 }}
           >
-            <XAxis type="number" tick={{ fontSize: 11 }} domain={[0, 'dataMax + 0.05']} />
+            <XAxis type="number" tick={{ fontSize: 10 }} domain={[0, 'dataMax + 0.05']} />
             <YAxis
               type="category"
               dataKey="displayFeature"
-              tick={{ fontSize: 12, fontWeight: 600 }}
-              width={120}
+              tick={{ fontSize: 11, fontWeight: 600 }}
+              width={105}
             />
             <RechartsTooltip
               formatter={(value: any) => [`${Number(value).toFixed(3)}`, 'Mean |SHAP| Importance']}
@@ -62,7 +62,7 @@ export const FeatureImportanceChart: React.FC<FeatureImportanceChartProps> = ({ 
                 border: 'none',
               }}
             />
-            <Bar dataKey="importance" radius={[0, 6, 6, 0]} barSize={18}>
+            <Bar dataKey="importance" radius={[0, 6, 6, 0]} barSize={16}>
               {sortedData.map((_, index) => (
                 <Cell
                   key={`cell-${index}`}
