@@ -2,18 +2,7 @@ import React from 'react';
 import { TestTube } from 'lucide-react';
 import { SectionCard } from './SectionCard';
 import { FormField } from './FormField';
-import { SelectField } from './SelectField';
-import {
-  BGR_OPTIONS,
-  BU_OPTIONS,
-  SOD_OPTIONS,
-  SC_OPTIONS,
-  POT_OPTIONS,
-  HEMO_OPTIONS,
-  PCV_OPTIONS,
-  RBCC_OPTIONS,
-  WBCC_OPTIONS,
-} from '../../data/formOptions';
+import { InputField } from './InputField';
 import { PatientInput } from '../../types/ckd';
 
 interface BloodTestSectionProps {
@@ -29,10 +18,10 @@ export const BloodTestSection: React.FC<BloodTestSectionProps> = ({
 }) => {
   return (
     <SectionCard
-      title="Blood Test Parameters"
-      subtitle="Serum biochemistry, renal retention markers, electrolytes & hematology panel"
+      title="Blood Chemistry & Hematology"
+      subtitle="Serum renal biomarkers, electrolytes, blood counts & hemoglobin levels"
       icon={TestTube}
-      badge="Serum Laboratory (9 Markers)"
+      badge="Serum Laboratory (9 Features)"
     >
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {/* Blood Glucose */}
@@ -41,14 +30,18 @@ export const BloodTestSection: React.FC<BloodTestSectionProps> = ({
           label="Blood Glucose (Random)"
           unit="mg/dL"
           required
-          tooltip="Random blood sugar level. Elevated values suggest glycemic dysregulation or diabetic nephropathy."
+          tooltip="Random blood sugar concentration. Normal fasting is 70 – 125 mg/dL."
           error={errors.bgr}
         >
-          <SelectField
+          <InputField
             id="bgr"
+            type="number"
             value={formData.bgr}
-            onChange={(val) => onChange('bgr', val)}
-            options={BGR_OPTIONS}
+            onChange={(val) => onChange('bgr', parseFloat(val) || 0)}
+            placeholder="e.g. 121"
+            min={30}
+            max={600}
+            step={1}
             hasError={!!errors.bgr}
           />
         </FormField>
@@ -59,14 +52,18 @@ export const BloodTestSection: React.FC<BloodTestSectionProps> = ({
           label="Blood Urea"
           unit="mg/dL"
           required
-          tooltip="Waste product from protein breakdown. Higher levels indicate diminished urea clearance by kidneys."
+          tooltip="Waste product from dietary protein. Normal range is 15 – 45 mg/dL. Elevated levels denote azotemia."
           error={errors.bu}
         >
-          <SelectField
+          <InputField
             id="bu"
+            type="number"
             value={formData.bu}
-            onChange={(val) => onChange('bu', val)}
-            options={BU_OPTIONS}
+            onChange={(val) => onChange('bu', parseFloat(val) || 0)}
+            placeholder="e.g. 36"
+            min={1}
+            max={500}
+            step={0.5}
             hasError={!!errors.bu}
           />
         </FormField>
@@ -77,14 +74,18 @@ export const BloodTestSection: React.FC<BloodTestSectionProps> = ({
           label="Serum Creatinine"
           unit="mg/dL"
           required
-          tooltip="Primary biomarker for kidney filtration function. Higher values indicate reduced renal clearance."
+          tooltip="Key kidney filtration marker. Normal range is 0.6 – 1.2 mg/dL. High values indicate declining filtration."
           error={errors.sc}
         >
-          <SelectField
+          <InputField
             id="sc"
+            type="number"
             value={formData.sc}
-            onChange={(val) => onChange('sc', val)}
-            options={SC_OPTIONS}
+            onChange={(val) => onChange('sc', parseFloat(val) || 0)}
+            placeholder="e.g. 1.2"
+            min={0.1}
+            max={50}
+            step={0.1}
             hasError={!!errors.sc}
           />
         </FormField>
@@ -92,17 +93,21 @@ export const BloodTestSection: React.FC<BloodTestSectionProps> = ({
         {/* Sodium */}
         <FormField
           id="sod"
-          label="Sodium"
+          label="Serum Sodium"
           unit="mEq/L"
           required
-          tooltip="Electrolyte balance index. Hyponatremia (<135) or Hypernatremia can reflect fluid overload or renal tubular dysfunction."
+          tooltip="Electrolyte balance index. Normal physiological range is 135 – 145 mEq/L."
           error={errors.sod}
         >
-          <SelectField
+          <InputField
             id="sod"
+            type="number"
             value={formData.sod}
-            onChange={(val) => onChange('sod', val)}
-            options={SOD_OPTIONS}
+            onChange={(val) => onChange('sod', parseFloat(val) || 0)}
+            placeholder="e.g. 137"
+            min={80}
+            max={200}
+            step={0.5}
             hasError={!!errors.sod}
           />
         </FormField>
@@ -110,17 +115,21 @@ export const BloodTestSection: React.FC<BloodTestSectionProps> = ({
         {/* Potassium */}
         <FormField
           id="pot"
-          label="Potassium"
+          label="Serum Potassium"
           unit="mEq/L"
           required
-          tooltip="Essential serum electrolyte. Hyperkalemia (≥5.5) is a major complication of advanced renal failure."
+          tooltip="Critical electrolyte for cardiac rhythm. Normal range is 3.5 – 5.0 mEq/L."
           error={errors.pot}
         >
-          <SelectField
+          <InputField
             id="pot"
+            type="number"
             value={formData.pot}
-            onChange={(val) => onChange('pot', val)}
-            options={POT_OPTIONS}
+            onChange={(val) => onChange('pot', parseFloat(val) || 0)}
+            placeholder="e.g. 4.4"
+            min={1.0}
+            max={15.0}
+            step={0.1}
             hasError={!!errors.pot}
           />
         </FormField>
@@ -131,14 +140,18 @@ export const BloodTestSection: React.FC<BloodTestSectionProps> = ({
           label="Hemoglobin"
           unit="g/dL"
           required
-          tooltip="Oxygen-carrying protein in red blood cells. Anemia (<11.3) is frequent in CKD due to erythropoietin deficiency."
+          tooltip="Oxygen-carrying red cell protein. Normal adult range is 12.0 – 17.5 g/dL. Low values indicate renal anemia."
           error={errors.hemo}
         >
-          <SelectField
+          <InputField
             id="hemo"
+            type="number"
             value={formData.hemo}
-            onChange={(val) => onChange('hemo', val)}
-            options={HEMO_OPTIONS}
+            onChange={(val) => onChange('hemo', parseFloat(val) || 0)}
+            placeholder="e.g. 15.4"
+            min={2.0}
+            max={25.0}
+            step={0.1}
             hasError={!!errors.hemo}
           />
         </FormField>
@@ -149,14 +162,18 @@ export const BloodTestSection: React.FC<BloodTestSectionProps> = ({
           label="Packed Cell Volume (PCV)"
           unit="%"
           required
-          tooltip="Hematocrit percentage of red blood cells in total blood volume."
+          tooltip="Hematocrit percentage of red blood cells in circulating blood. Normal is 36 – 50%."
           error={errors.pcv}
         >
-          <SelectField
+          <InputField
             id="pcv"
+            type="number"
             value={formData.pcv}
-            onChange={(val) => onChange('pcv', val)}
-            options={PCV_OPTIONS}
+            onChange={(val) => onChange('pcv', parseFloat(val) || 0)}
+            placeholder="e.g. 44"
+            min={10}
+            max={70}
+            step={1}
             hasError={!!errors.pcv}
           />
         </FormField>
@@ -165,16 +182,20 @@ export const BloodTestSection: React.FC<BloodTestSectionProps> = ({
         <FormField
           id="rbcc"
           label="Red Blood Cell Count"
-          unit="M/µL"
+          unit="M/cmm"
           required
-          tooltip="Total red blood cell concentration."
+          tooltip="Total red blood cell concentration. Normal adult range is 4.0 – 5.9 M/cmm."
           error={errors.rbcc}
         >
-          <SelectField
+          <InputField
             id="rbcc"
+            type="number"
             value={formData.rbcc}
-            onChange={(val) => onChange('rbcc', val)}
-            options={RBCC_OPTIONS}
+            onChange={(val) => onChange('rbcc', parseFloat(val) || 0)}
+            placeholder="e.g. 5.2"
+            min={1.0}
+            max={10.0}
+            step={0.1}
             hasError={!!errors.rbcc}
           />
         </FormField>
@@ -185,14 +206,18 @@ export const BloodTestSection: React.FC<BloodTestSectionProps> = ({
           label="White Blood Cell Count"
           unit="cells/cumm"
           required
-          tooltip="Total leukocyte count indicative of systemic inflammation or infection."
+          tooltip="Total leukocyte count. Normal range is 4,500 – 11,000 cells/cumm."
           error={errors.wbcc}
         >
-          <SelectField
+          <InputField
             id="wbcc"
+            type="number"
             value={formData.wbcc}
-            onChange={(val) => onChange('wbcc', val)}
-            options={WBCC_OPTIONS}
+            onChange={(val) => onChange('wbcc', parseFloat(val) || 0)}
+            placeholder="e.g. 7800"
+            min={1000}
+            max={50000}
+            step={100}
             hasError={!!errors.wbcc}
           />
         </FormField>

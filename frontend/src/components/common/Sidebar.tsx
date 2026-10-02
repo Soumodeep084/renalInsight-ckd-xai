@@ -44,7 +44,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile })
       to: '/guide',
       label: 'CKD & Feature Guide',
       icon: BookOpen,
-      badge: '25 Features',
+      badge: '24 Features',
       badgeColor: 'bg-teal-700 text-white',
     },
     {
@@ -64,7 +64,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile })
           onClick={onCloseMobile}
           className="flex items-center gap-3 group"
         >
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-500 to-sky-600 flex items-center justify-center shadow-lg shadow-teal-500/20 text-white font-bold group-hover:scale-105 transition-transform">
+          <div className="w-10 h-10 rounded-xl bg-linear-to-br from-teal-500 to-sky-600 flex items-center justify-center shadow-lg shadow-teal-500/20 text-white font-bold group-hover:scale-105 transition-transform">
             <Brain className="w-6 h-6" />
           </div>
           <div>

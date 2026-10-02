@@ -36,8 +36,8 @@ export const CkdGuideSection: React.FC<CkdGuideSectionProps> = ({
   const [isShapGuideOpen, setIsShapGuideOpen] = useState(true);
 
   const categories = [
-    { id: 'all', label: 'All 25 Features', count: 25 },
-    { id: 'Demographic', label: 'Patient & BP', count: 3, icon: User },
+    { id: 'all', label: 'All 24 Features', count: 24 },
+    { id: 'Demographic', label: 'Patient & BP', count: 2, icon: User },
     { id: 'Kidney', label: 'Kidney & Urine', count: 7, icon: Droplet },
     { id: 'Blood', label: 'Blood Lab Panel', count: 9, icon: TestTube },
     { id: 'Symptom', label: 'Conditions & Symptoms', count: 6, icon: HeartPulse },
@@ -60,7 +60,7 @@ export const CkdGuideSection: React.FC<CkdGuideSectionProps> = ({
   return (
     <div className={`space-y-6 ${className}`}>
       {/* Header Banner */}
-      <div className="bg-gradient-to-r from-teal-900 via-slate-900 to-slate-900 rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
+      <div className="bg-linear-to-r from-teal-900 via-slate-900 to-slate-900 rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
         <div className="absolute right-0 top-0 w-80 h-80 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
 
         <div className="relative z-10 space-y-3 max-w-3xl">
@@ -74,7 +74,7 @@ export const CkdGuideSection: React.FC<CkdGuideSectionProps> = ({
           </h2>
 
           <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-normal">
-            No medical background required. Explore how the 25 clinical markers work, why they matter for kidney health, and how to easily interpret your AI prediction factors.
+            No medical background required. Explore how the 24 clinical markers work, why they matter for kidney health, and how to easily interpret your AI prediction factors.
           </p>
         </div>
       </div>
@@ -172,12 +172,12 @@ export const CkdGuideSection: React.FC<CkdGuideSectionProps> = ({
         )}
       </div>
 
-      {/* Part 2: The 25 Clinical Features Dictionary */}
+      {/* Part 2: The 24 Clinical Features Dictionary */}
       <div className="bg-white rounded-3xl border border-slate-200 shadow-md p-6 sm:p-8 space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
           <div>
             <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
-              The 25 Clinical Features Explained
+              The 24 Clinical Features Explained
             </h3>
             <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
               Click any feature below to explore what it measures in simple language and why it matters
@@ -185,7 +185,7 @@ export const CkdGuideSection: React.FC<CkdGuideSectionProps> = ({
           </div>
 
           <div className="text-xs font-bold text-teal-800 bg-teal-50 px-3.5 py-1.5 rounded-full border border-teal-200 self-start sm:self-auto">
-            {filteredFeatures.length} of 25 Features Shown
+            {filteredFeatures.length} of 24 Features Shown
           </div>
         </div>
 
@@ -198,17 +198,15 @@ export const CkdGuideSection: React.FC<CkdGuideSectionProps> = ({
                 key={cat.id}
                 type="button"
                 onClick={() => setSelectedCategory(cat.id)}
-                className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer ${
-                  selectedCategory === cat.id
-                    ? 'bg-teal-600 text-white shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
-                }`}
+                className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer ${selectedCategory === cat.id
+                  ? 'bg-teal-600 text-white shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+                  }`}
               >
                 <span>{cat.label}</span>
                 <span
-                  className={`text-[10px] px-1.5 py-0.2 rounded-full ${
-                    selectedCategory === cat.id ? 'bg-teal-700 text-white' : 'bg-slate-200 text-slate-700'
-                  }`}
+                  className={`text-[10px] px-1.5 py-0.2 rounded-full ${selectedCategory === cat.id ? 'bg-teal-700 text-white' : 'bg-slate-200 text-slate-700'
+                    }`}
                 >
                   {cat.count}
                 </span>
@@ -217,14 +215,14 @@ export const CkdGuideSection: React.FC<CkdGuideSectionProps> = ({
           </div>
 
           {/* Search Input */}
-          <div className="relative min-w-[240px]">
+          <div className="relative min-w-60">
             <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               type="text"
               placeholder="Search features (e.g. Creatinine, Sugar)..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:bg-white transition-all"
+              className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-xs text-slate-800  focus:outline-none focus:ring-2 focus:ring-teal-500 focus:bg-white transition-all"
             />
           </div>
         </div>
@@ -235,7 +233,7 @@ export const CkdGuideSection: React.FC<CkdGuideSectionProps> = ({
             <div className="text-center py-12 bg-slate-50 rounded-2xl border border-slate-200/80 text-xs text-slate-500 space-y-2">
               <HelpCircle className="w-8 h-8 text-slate-400 mx-auto" />
               <p className="font-semibold text-slate-700">No matching clinical features found</p>
-              <p>Try searching for a different term or selecting "All 25 Features".</p>
+              <p>Try searching for a different term or selecting "All 24 Features".</p>
             </div>
           ) : (
             filteredFeatures.map((feature, idx) => {
@@ -243,11 +241,10 @@ export const CkdGuideSection: React.FC<CkdGuideSectionProps> = ({
               return (
                 <div
                   key={feature.id}
-                  className={`rounded-2xl border transition-all ${
-                    isExpanded
-                      ? 'border-teal-300 bg-teal-50/20 shadow-xs'
-                      : 'border-slate-200/90 bg-white hover:border-slate-300 hover:bg-slate-50/50'
-                  }`}
+                  className={`rounded-2xl border transition-all ${isExpanded
+                    ? 'border-teal-300 bg-teal-50/20 shadow-xs'
+                    : 'border-slate-200/90 bg-white hover:border-slate-300 hover:bg-slate-50/50'
+                    }`}
                 >
                   {/* Clickable Card Header */}
                   <button

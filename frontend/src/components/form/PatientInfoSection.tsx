@@ -2,9 +2,7 @@ import React from 'react';
 import { User } from 'lucide-react';
 import { SectionCard } from './SectionCard';
 import { FormField } from './FormField';
-import { SelectField } from './SelectField';
 import { InputField } from './InputField';
-import { AGE_OPTIONS, BP_LIMIT_OPTIONS } from '../../data/formOptions';
 import { PatientInput } from '../../types/ckd';
 
 interface PatientInfoSectionProps {
@@ -20,66 +18,53 @@ export const PatientInfoSection: React.FC<PatientInfoSectionProps> = ({
 }) => {
   return (
     <SectionCard
-      title="Patient Information"
-      subtitle="Basic demographics and resting physiological parameters"
+      title="Patient Demographics & Vitals"
+      subtitle="Basic patient profile and resting physiological measurements"
       icon={User}
-      badge="General Demographics"
+      badge="Demographics (2 Features)"
     >
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-        {/* Age Dropdown */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        {/* Patient Age Numeric */}
         <FormField
           id="age"
           label="Patient Age"
           unit="years"
           required
-          tooltip="Age group normalized from dataset ranges. Standardized for baseline risk stratification."
+          tooltip="Patient age in years (1 – 120). Age-related changes influence baseline kidney filtration capacity."
           error={errors.age}
         >
-          <SelectField
+          <InputField
             id="age"
+            type="number"
             value={formData.age}
-            onChange={(val) => onChange('age', val)}
-            options={AGE_OPTIONS}
+            onChange={(val) => onChange('age', parseFloat(val) || 0)}
+            placeholder="e.g. 48"
+            min={1}
+            max={120}
+            step={1}
             hasError={!!errors.age}
           />
         </FormField>
 
-        {/* Diastolic Blood Pressure Numeric */}
+        {/* Blood Pressure Numeric */}
         <FormField
-          id="bp_diastolic"
-          label="Diastolic Blood Pressure"
-          unit="mmHg"
+          id="bp"
+          label="Blood Pressure"
+          unit="mm Hg"
           required
-          tooltip="Resting arterial blood pressure measured in resting phase. Range 40 - 180 mmHg."
-          error={errors.bp_diastolic}
+          tooltip="Resting arterial blood pressure in mm Hg (typically 70 – 80 mm Hg for healthy adults)."
+          error={errors.bp}
         >
           <InputField
-            id="bp_diastolic"
+            id="bp"
             type="number"
-            value={formData.bp_diastolic}
-            onChange={(val) => onChange('bp_diastolic', parseFloat(val) || 0)}
-            placeholder="e.g. 76"
+            value={formData.bp}
+            onChange={(val) => onChange('bp', parseFloat(val) || 0)}
+            placeholder="e.g. 80"
             min={40}
-            max={180}
-            hasError={!!errors.bp_diastolic}
-          />
-        </FormField>
-
-        {/* BP Limit Dropdown */}
-        <FormField
-          id="bp_limit"
-          label="BP Limit Category"
-          unit="mmHg"
-          required
-          tooltip="Categorical threshold categorization for resting arterial pressure burden."
-          error={errors.bp_limit}
-        >
-          <SelectField
-            id="bp_limit"
-            value={formData.bp_limit}
-            onChange={(val) => onChange('bp_limit', val)}
-            options={BP_LIMIT_OPTIONS}
-            hasError={!!errors.bp_limit}
+            max={250}
+            step={1}
+            hasError={!!errors.bp}
           />
         </FormField>
       </div>

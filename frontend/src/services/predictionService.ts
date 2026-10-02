@@ -1,6 +1,4 @@
 import { PatientInput, PredictionResult, ShapFactor, FeatureImportance, RiskLevel, PredictionTarget } from '../types/ckd';
-import { MOCK_GLOBAL_FEATURE_IMPORTANCE } from '../data/mockPrediction';
-import { getDualExplanation } from '../data/featureGuideData';
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000').replace(/\/+$/, '');
 
@@ -11,45 +9,39 @@ export function formatDisplayFeatureName(rawName: string, observedValue?: string
   if (!rawName) return 'Clinical Factor';
 
   let clean = rawName;
-  // Remove technical prefixes
   if (clean.startsWith('cat__')) {
     clean = clean.replace('cat__', '');
   } else if (clean.startsWith('num__')) {
     clean = clean.replace('num__', '');
   }
 
-  // Feature name translations
   const featureMap: Record<string, string> = {
-    'bp (Diastolic)': 'Diastolic Blood Pressure',
-    'bp_diastolic': 'Diastolic Blood Pressure',
-    'bp limit': 'Blood Pressure Limit',
-    'bp_limit': 'Blood Pressure Limit',
+    'age': 'Age',
+    'bp': 'Blood Pressure',
     'sg': 'Specific Gravity',
-    'al': 'Albuminuria (Protein)',
-    'su': 'Urinary Glucose (Sugar)',
+    'al': 'Albumin',
+    'su': 'Sugar',
     'rbc': 'Red Blood Cells (Urine)',
-    'pc': 'Pus Cells (Pyuria)',
+    'pc': 'Pus Cell (Urine)',
     'pcc': 'Pus Cell Clumps',
     'ba': 'Bacteria (Urine)',
-    'bgr': 'Random Blood Glucose',
+    'bgr': 'Blood Glucose (Random)',
     'bu': 'Blood Urea',
-    'sod': 'Serum Sodium',
     'sc': 'Serum Creatinine',
-    'pot': 'Serum Potassium',
+    'sod': 'Sodium',
+    'pot': 'Potassium',
     'hemo': 'Hemoglobin',
     'pcv': 'Packed Cell Volume (Hematocrit)',
-    'rbcc': 'Red Blood Cell Count',
     'wbcc': 'White Blood Cell Count',
+    'rbcc': 'Red Blood Cell Count',
     'htn': 'Hypertension',
     'dm': 'Diabetes Mellitus',
     'cad': 'Coronary Artery Disease',
-    'appet': 'Appetite Status',
+    'appet': 'Appetite',
     'pe': 'Pedal Edema',
-    'ane': 'Clinical Anemia',
-    'age': 'Patient Age',
+    'ane': 'Anemia',
   };
 
-  // Check if it's a composite key like `hemo_11.3 - 12.6`
   const underscoreIdx = clean.indexOf('_');
   if (underscoreIdx > 0) {
     const baseKey = clean.substring(0, underscoreIdx);
@@ -77,24 +69,30 @@ function normalizeShapFactor(raw: any): ShapFactor {
   const direction: 'increasing' | 'decreasing' = raw.direction === 'increasing' || shapVal > 0 ? 'increasing' : 'decreasing';
   
   const displayFeature = raw.display_feature || raw.displayFeature || formatDisplayFeatureName(featureKey, observedVal);
-  const dual = getDualExplanation(featureKey, direction, observedVal, shapVal);
+
+  const absShap = Math.abs(shapVal);
+  const influenceStrength: 'Strong' | 'Moderate' | 'Mild' = absShap >= 0.15 ? 'Strong' : (absShap >= 0.04 ? 'Moderate' : 'Mild');
 
   return {
     feature: featureKey,
+    encodedFeature: raw.encoded_feature || raw.encodedFeature,
     displayFeature,
     value: observedVal,
+    unit: raw.unit || '',
     shapValue: Number(shapVal.toFixed(4)),
     direction,
     category: raw.category || 'Kidney',
-    generalExplanation: dual.generalExplanation,
-    medicalExplanation: dual.medicalExplanation,
-    influenceStrength: dual.influenceStrength,
+    plainExplanation: raw.plain_explanation || raw.plainExplanation || (direction === 'increasing'
+      ? 'This factor pushed the model toward a higher CKD prediction.'
+      : 'This factor pushed the model toward a lower CKD prediction.'),
+    medicalExplanation: raw.medical_explanation || raw.medicalExplanation || raw.description || '',
+    influenceStrength,
     description: raw.description || undefined,
   };
 }
 
 /**
- * Executes ML prediction and SHAP calculation via the FastAPI backend.
+ * Executes ML prediction and Tree SHAP calculation via the FastAPI backend.
  */
 export async function analyzeCKDRisk(input: PatientInput): Promise<PredictionResult> {
   const endpoint = `${API_BASE_URL}/predict`;
@@ -109,7 +107,7 @@ export async function analyzeCKDRisk(input: PatientInput): Promise<PredictionRes
       },
       body: JSON.stringify(input),
     });
-  } catch (networkError: any) {
+  } catch {
     throw new Error(
       `Unable to connect to the RenalInsight backend at ${API_BASE_URL}. Please ensure the FastAPI server is running with 'uv run uvicorn app.main:app --reload'.`
     );
@@ -135,7 +133,6 @@ export async function analyzeCKDRisk(input: PatientInput): Promise<PredictionRes
 
   const data = await response.json();
 
-  // Normalize response
   const prediction: PredictionTarget = data.prediction === 'CKD' ? 'CKD' : 'NOT CKD';
   const probability = typeof data.probability === 'number' ? Number(data.probability.toFixed(2)) : 0;
   const notCkdProbability = typeof data.not_ckd_probability === 'number'
@@ -157,7 +154,7 @@ export async function analyzeCKDRisk(input: PatientInput): Promise<PredictionRes
 
   allFactors.sort((a, b) => Math.abs(b.shapValue) - Math.abs(a.shapValue));
 
-  const globalImportance: FeatureImportance[] = (data.global_feature_importance || data.globalFeatureImportance || MOCK_GLOBAL_FEATURE_IMPORTANCE).map((g: any, index: number) => ({
+  const globalImportance: FeatureImportance[] = (data.global_feature_importance || data.globalFeatureImportance || []).map((g: any, index: number) => ({
     feature: g.feature || `feat_${index}`,
     displayFeature: g.display_feature || g.displayFeature || formatDisplayFeatureName(g.feature),
     importance: typeof g.importance === 'number' ? g.importance : 0.1,
@@ -170,8 +167,8 @@ export async function analyzeCKDRisk(input: PatientInput): Promise<PredictionRes
     probability,
     notCkdProbability,
     riskLevel,
-    modelName: data.model_name || data.modelName || 'Logistic Regression (XAI-Enabled)',
-    explainabilityMethod: data.explainability_method || data.explainabilityMethod || 'SHAP (SHapley Additive exPlanations)',
+    modelName: data.model_name || data.modelName || 'Decision Tree (UCI 336)',
+    explainabilityMethod: data.explainability_method || data.explainabilityMethod || 'Tree SHAP (TreeExplainer)',
     timestamp: data.timestamp || new Date().toISOString(),
     increasingFactors,
     decreasingFactors,

@@ -48,7 +48,7 @@ export const Header: React.FC<HeaderProps> = ({ onMobileMenuToggle }) => {
       case '/predict':
         return {
           title: 'CKD Risk Prediction Form',
-          subtitle: 'Enter patient parameters across 25 validated features for real-time inference',
+          subtitle: 'Enter patient parameters across 24 validated features for real-time inference',
           icon: Stethoscope,
         };
       case '/results':
@@ -60,7 +60,7 @@ export const Header: React.FC<HeaderProps> = ({ onMobileMenuToggle }) => {
       case '/guide':
         return {
           title: 'Understanding Your Results & CKD Guide',
-          subtitle: 'Beginner-friendly explanation of 25 clinical features and SHAP reasoning',
+          subtitle: 'Beginner-friendly explanation of 24 clinical features and SHAP reasoning',
           icon: BookOpen,
         };
       case '/about':

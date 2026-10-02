@@ -9,12 +9,11 @@ interface PatientSummaryProps {
 
 export const PatientSummary: React.FC<PatientSummaryProps> = ({ inputData, onEditInputs }) => {
   const summaryItems = [
-    { label: 'Patient Age', value: inputData.age, category: 'Demographics' },
-    { label: 'Diastolic BP', value: `${inputData.bp_diastolic} mmHg`, category: 'Demographics' },
-    { label: 'BP Limit', value: inputData.bp_limit, category: 'Demographics' },
-    { label: 'Specific Gravity', value: inputData.sg, category: 'Urinalysis' },
-    { label: 'Albuminuria', value: inputData.al, category: 'Urinalysis' },
-    { label: 'Urinary Sugar', value: inputData.su, category: 'Urinalysis' },
+    { label: 'Patient Age', value: `${inputData.age} yrs`, category: 'Demographics' },
+    { label: 'Blood Pressure', value: `${inputData.bp} mm Hg`, category: 'Demographics' },
+    { label: 'Specific Gravity', value: `${inputData.sg}`, category: 'Urinalysis' },
+    { label: 'Albumin', value: `${inputData.al} (0-5)`, category: 'Urinalysis' },
+    { label: 'Urinary Sugar', value: `${inputData.su} (0-5)`, category: 'Urinalysis' },
     { label: 'Red Blood Cells', value: inputData.rbc, category: 'Urinalysis' },
     { label: 'Pus Cells', value: inputData.pc, category: 'Urinalysis' },
     { label: 'Pus Cell Clumps', value: inputData.pcc, category: 'Urinalysis' },
@@ -26,8 +25,8 @@ export const PatientSummary: React.FC<PatientSummaryProps> = ({ inputData, onEdi
     { label: 'Potassium', value: `${inputData.pot} mEq/L`, category: 'Blood Panel' },
     { label: 'Hemoglobin', value: `${inputData.hemo} g/dL`, category: 'Blood Panel' },
     { label: 'Packed Cell Volume', value: `${inputData.pcv} %`, category: 'Blood Panel' },
-    { label: 'RBC Count', value: `${inputData.rbcc} M/µL`, category: 'Blood Panel' },
     { label: 'WBC Count', value: `${inputData.wbcc} cells/cumm`, category: 'Blood Panel' },
+    { label: 'RBC Count', value: `${inputData.rbcc} M/cmm`, category: 'Blood Panel' },
     { label: 'Hypertension', value: inputData.htn, category: 'Symptoms' },
     { label: 'Diabetes Mellitus', value: inputData.dm, category: 'Symptoms' },
     { label: 'Coronary Artery Disease', value: inputData.cad, category: 'Symptoms' },
@@ -46,10 +45,10 @@ export const PatientSummary: React.FC<PatientSummaryProps> = ({ inputData, onEdi
           </div>
           <div>
             <h3 className="text-xl font-bold text-slate-900 tracking-tight">
-              Patient Input Summary
+              Patient Input Summary (24 Features)
             </h3>
             <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-              Verified clinical features submitted for model assessment
+              Verified clinical features submitted for Decision Tree assessment
             </p>
           </div>
         </div>
@@ -65,26 +64,32 @@ export const PatientSummary: React.FC<PatientSummaryProps> = ({ inputData, onEdi
       </div>
 
       {/* Grid of Values */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3.5">
-        {summaryItems.map((item, idx) => (
-          <div
-            key={idx}
-            className="p-3 bg-slate-50 border border-slate-200/80 rounded-xl space-y-1 hover:bg-slate-100/80 transition-colors"
-          >
-            <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-              {item.category}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3.5">
+        {summaryItems.map((item, idx) => {
+          const valLower = String(item.value).toLowerCase();
+          const isWarning = valLower === 'yes' || valLower === 'abnormal' || valLower === 'present' || valLower === 'poor';
+          const isSafe = valLower === 'no' || valLower === 'normal' || valLower === 'notpresent' || valLower === 'good';
+
+          return (
+            <div
+              key={idx}
+              className="p-3 bg-slate-50 border border-slate-200/80 rounded-xl space-y-1 hover:bg-slate-100/80 transition-colors"
+            >
+              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                {item.category}
+              </div>
+              <div className="text-xs font-semibold text-slate-700 truncate">{item.label}</div>
+              <div className="text-xs font-bold text-slate-900 font-mono flex items-center gap-1">
+                {isWarning ? (
+                  <AlertCircle className="w-3 h-3 text-amber-500 shrink-0" />
+                ) : isSafe ? (
+                  <CheckCircle2 className="w-3 h-3 text-emerald-500 shrink-0" />
+                ) : null}
+                <span className="truncate">{String(item.value)}</span>
+              </div>
             </div>
-            <div className="text-xs font-semibold text-slate-700 truncate">{item.label}</div>
-            <div className="text-xs font-bold text-slate-900 font-mono flex items-center gap-1">
-              {item.value === 'Yes' || item.value === 'Abnormal' || item.value === 'Present' ? (
-                <AlertCircle className="w-3 h-3 text-amber-500 shrink-0" />
-              ) : item.value === 'No' || item.value === 'Normal' || item.value === 'Not Present' ? (
-                <CheckCircle2 className="w-3 h-3 text-emerald-500 shrink-0" />
-              ) : null}
-              <span className="truncate">{item.value}</span>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

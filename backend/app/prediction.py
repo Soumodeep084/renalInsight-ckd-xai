@@ -8,7 +8,7 @@ import joblib
 import numpy as np
 import pandas as pd
 from sklearn.pipeline import Pipeline
-from shap import Explainer
+from shap import TreeExplainer
 
 from app.config import settings
 from app.schemas import (
@@ -21,8 +21,13 @@ from app.schemas import (
 
 logger = logging.getLogger("renalinsight.prediction")
 
-# Clinical domain mapping for display & categorizations
+# ---------------------------------------------------------------------------
+# Feature Metadata Mappings for UCI 336 (24 Predictors)
+# ---------------------------------------------------------------------------
+
 FEATURE_CATEGORY_MAP: Dict[str, str] = {
+    "age": "Demographic",
+    "bp": "Demographic",
     "sg": "Kidney",
     "al": "Kidney",
     "su": "Kidney",
@@ -32,116 +37,335 @@ FEATURE_CATEGORY_MAP: Dict[str, str] = {
     "ba": "Kidney",
     "bgr": "Blood",
     "bu": "Blood",
-    "sod": "Blood",
     "sc": "Blood",
+    "sod": "Blood",
     "pot": "Blood",
     "hemo": "Blood",
     "pcv": "Blood",
-    "rbcc": "Blood",
     "wbcc": "Blood",
+    "rbcc": "Blood",
     "htn": "Symptom",
     "dm": "Symptom",
     "cad": "Symptom",
     "appet": "Symptom",
     "pe": "Symptom",
     "ane": "Symptom",
-    "age": "Demographic",
-    "bp (Diastolic)": "Demographic",
-    "bp_diastolic": "Demographic",
-    "bp limit": "Demographic",
-    "bp_limit": "Demographic",
 }
 
 FEATURE_DISPLAY_NAMES: Dict[str, str] = {
-    "bp (Diastolic)": "Diastolic Blood Pressure",
-    "bp limit": "Blood Pressure Limit",
+    "age": "Age",
+    "bp": "Blood Pressure",
     "sg": "Specific Gravity",
-    "al": "Albuminuria",
+    "al": "Albumin",
+    "su": "Sugar",
     "rbc": "Red Blood Cells (Urine)",
-    "su": "Urinary Glucose",
-    "pc": "Pus Cells (Pyuria)",
+    "pc": "Pus Cell (Urine)",
     "pcc": "Pus Cell Clumps",
     "ba": "Bacteria (Urine)",
-    "bgr": "Random Blood Glucose",
+    "bgr": "Blood Glucose (Random)",
     "bu": "Blood Urea",
-    "sod": "Serum Sodium",
     "sc": "Serum Creatinine",
-    "pot": "Serum Potassium",
+    "sod": "Sodium",
+    "pot": "Potassium",
     "hemo": "Hemoglobin",
     "pcv": "Packed Cell Volume (Hematocrit)",
-    "rbcc": "RBC Count",
-    "wbcc": "WBC Count",
+    "wbcc": "White Blood Cell Count",
+    "rbcc": "Red Blood Cell Count",
     "htn": "Hypertension",
     "dm": "Diabetes Mellitus",
     "cad": "Coronary Artery Disease",
-    "appet": "Appetite Status",
+    "appet": "Appetite",
     "pe": "Pedal Edema",
-    "ane": "Clinical Anemia",
-    "age": "Patient Age",
+    "ane": "Anemia",
 }
 
-# Clinical descriptions for key biomarkers
-CLINICAL_DESCRIPTIONS: Dict[str, Dict[str, str]] = {
-    "htn": {
-        "pos": "Systemic arterial hypertension increases glomerular capillary pressure and accelerates renal sclerosis.",
-        "neg": "Normotensive profile preserves renal microvasculature.",
-    },
-    "dm": {
-        "pos": "Diabetic microvascular pathology promotes diabetic glomerulosclerosis and tubular atrophy.",
-        "neg": "Absence of diabetes mellitus significantly reduces nephropathy risk.",
-    },
-    "al": {
-        "pos": "Elevated albuminuria reflects disrupted glomerular filtration barrier integrity.",
-        "neg": "Normal urine albumin levels indicate intact podocyte slit diaphragms.",
+FEATURE_UNITS: Dict[str, str] = {
+    "age": "years",
+    "bp": "mm Hg",
+    "sg": "",
+    "al": "scale (0-5)",
+    "su": "scale (0-5)",
+    "rbc": "",
+    "pc": "",
+    "pcc": "",
+    "ba": "",
+    "bgr": "mg/dL",
+    "bu": "mg/dL",
+    "sc": "mg/dL",
+    "sod": "mEq/L",
+    "pot": "mEq/L",
+    "hemo": "g/dL",
+    "pcv": "%",
+    "wbcc": "cells/cumm",
+    "rbcc": "M/cmm",
+    "htn": "",
+    "dm": "",
+    "cad": "",
+    "appet": "",
+    "pe": "",
+    "ane": "",
+}
+
+# Plain-English and Technical Nephrology Explanations
+EXPLANATION_TEMPLATES: Dict[str, Dict[str, Dict[str, str]]] = {
+    "hemo": {
+        "increasing": {
+            "plain": "Lower hemoglobin level pushed the model toward a higher CKD prediction, as low blood counts commonly accompany kidney filtration issues.",
+            "medical": "Decreased hemoglobin indicates impaired renal parenchymal erythropoietin production, a hallmark sign of chronic kidney dysfunction."
+        },
+        "decreasing": {
+            "plain": "Healthy hemoglobin level pushed the model toward a lower CKD prediction.",
+            "medical": "Preserved hemoglobin concentrations suggest intact endocrine synthesis of erythropoietin by renal peritubular capillary cells."
+        }
     },
     "sc": {
-        "pos": "Elevated serum creatinine indicates diminished glomerular clearance function.",
-        "neg": "Serum creatinine within normal ranges indicates adequate renal clearance.",
-    },
-    "hemo": {
-        "pos": "Decreased hemoglobin indicates renal anemia due to impaired erythropoietin production.",
-        "neg": "Normal hemoglobin levels signify adequate erythropoietin endocrine function.",
+        "increasing": {
+            "plain": "Elevated serum creatinine level pushed the model toward a higher CKD prediction, as creatinine builds up when kidneys filter less efficiently.",
+            "medical": "Elevated serum creatinine reflects compromised glomerular clearance and declining glomerular filtration rate (GFR)."
+        },
+        "decreasing": {
+            "plain": "Normal serum creatinine level pushed the model toward a lower CKD prediction, reflecting healthy waste clearance.",
+            "medical": "Physiological serum creatinine concentrations correlate with adequate renal clearance and normal baseline glomerular filtration."
+        }
     },
     "sg": {
-        "pos": "Low urine specific gravity reflects impaired tubular urine concentrating capability.",
-        "neg": "Physiological specific gravity confirms adequate renal concentrating ability.",
+        "increasing": {
+            "plain": "Abnormal urine specific gravity pushed the model toward a higher CKD prediction, suggesting impaired urine concentration.",
+            "medical": "Isosthenuria or reduced urine specific gravity reflects loss of renal medullary concentration gradient and tubular reabsorptive capability."
+        },
+        "decreasing": {
+            "plain": "Normal urine specific gravity pushed the model toward a lower CKD prediction, showing normal urine concentrating ability.",
+            "medical": "Physiological urinary specific gravity confirms intact renal tubular concentrating mechanisms and osmoregulation."
+        }
+    },
+    "al": {
+        "increasing": {
+            "plain": "Presence of albumin in urine pushed the model toward a higher CKD prediction, indicating protein leakage through kidney filters.",
+            "medical": "Albuminuria signifies disrupted glomerular filtration barrier integrity and podocyte slit diaphragm compromise."
+        },
+        "decreasing": {
+            "plain": "Absence of albumin in urine pushed the model toward a lower CKD prediction.",
+            "medical": "Negative albuminuria confirms preservation of glomerular basement membrane barrier selectivity."
+        }
+    },
+    "su": {
+        "increasing": {
+            "plain": "Presence of sugar in urine pushed the model toward a higher CKD prediction.",
+            "medical": "Glucosuria reflects tubular transport saturation or underlying metabolic dysregulation that strains renal microvasculature."
+        },
+        "decreasing": {
+            "plain": "Absence of sugar in urine pushed the model toward a lower CKD prediction.",
+            "medical": "Absence of glucosuria indicates intact tubular glucose reabsorption without excessive glycemic filter load."
+        }
+    },
+    "rbcc": {
+        "increasing": {
+            "plain": "Reduced red blood cell count pushed the model toward a higher CKD prediction.",
+            "medical": "Erythrocytopenia correlates with diminished renal endocrine stimulation and functional nephron loss."
+        },
+        "decreasing": {
+            "plain": "Normal red blood cell count pushed the model toward a lower CKD prediction.",
+            "medical": "Adequate circulating erythrocyte count reflects preserved renal hormonal axis and physiological hematopoiesis."
+        }
+    },
+    "pcv": {
+        "increasing": {
+            "plain": "Lower packed cell volume (hematocrit) pushed the model toward a higher CKD prediction.",
+            "medical": "Reduced hematocrit reflects normocytic normochromic anemia secondary to chronic renal parenchymal impairment."
+        },
+        "decreasing": {
+            "plain": "Healthy packed cell volume pushed the model toward a lower CKD prediction.",
+            "medical": "Normal hematocrit levels indicate preserved circulating red cell mass and kidney hormonal homeostasis."
+        }
     },
     "bu": {
-        "pos": "Elevated blood urea reflects decreased clearance of nitrogenous metabolic waste.",
-        "neg": "Blood urea in physiological range signifies preserved urea excretion.",
+        "increasing": {
+            "plain": "Elevated blood urea pushed the model toward a higher CKD prediction, reflecting retained nitrogen waste.",
+            "medical": "Elevated blood urea nitrogen reflects decreased renal clearance of nitrogenous protein catabolites."
+        },
+        "decreasing": {
+            "plain": "Normal blood urea level pushed the model toward a lower CKD prediction.",
+            "medical": "Preserved blood urea levels confirm adequate glomerular clearance and nitrogen waste excretion."
+        }
     },
-    "pe": {
-        "pos": "Peripheral pedal edema reflects renal sodium retention and extracellular fluid expansion.",
-        "neg": "Absence of edema indicates balanced sodium and fluid homeostasis.",
+    "bgr": {
+        "increasing": {
+            "plain": "Elevated blood glucose pushed the model toward a higher CKD prediction.",
+            "medical": "Hyperglycemia induces advanced glycation end-products and glomerular hyperfiltration injury."
+        },
+        "decreasing": {
+            "plain": "Normal blood glucose pushed the model toward a lower CKD prediction.",
+            "medical": "Normoglycemia reduces microvascular stress and preserves renal capillary endothelium."
+        }
     },
-    "pc": {
-        "pos": "Elevated pus cells in urine sediment indicate urinary inflammation or interstitial nephritis.",
-        "neg": "Normal pus cell levels signify absence of active pyuria.",
+    "sod": {
+        "increasing": {
+            "plain": "Altered serum sodium pushed the model toward a higher CKD prediction, pointing to electrolyte imbalance.",
+            "medical": "Dysnatremia reflects impaired tubular sodium handling and disrupted renal fluid homeostasis."
+        },
+        "decreasing": {
+            "plain": "Normal serum sodium pushed the model toward a lower CKD prediction.",
+            "medical": "Physiological serum sodium confirms intact renal electrolyte transport and volume regulation."
+        }
+    },
+    "pot": {
+        "increasing": {
+            "plain": "Abnormal serum potassium pushed the model toward a higher CKD prediction.",
+            "medical": "Hyperkalemia or electrolyte dysregulation occurs with diminished distal nephron potassium secretion."
+        },
+        "decreasing": {
+            "plain": "Normal serum potassium pushed the model toward a lower CKD prediction.",
+            "medical": "Preserved potassium homeostasis indicates functional tubular secretion and aldosterone-mediated clearance."
+        }
+    },
+    "wbcc": {
+        "increasing": {
+            "plain": "Elevated white blood cell count pushed the model toward a higher CKD prediction, suggesting inflammation.",
+            "medical": "Leukocytosis correlates with chronic systemic inflammation or active tubulointerstitial stress."
+        },
+        "decreasing": {
+            "plain": "Normal white blood cell count pushed the model toward a lower CKD prediction.",
+            "medical": "Physiological leukocyte levels indicate absence of acute systemic inflammatory response."
+        }
+    },
+    "htn": {
+        "increasing": {
+            "plain": "Hypertension (high blood pressure) pushed the model toward a higher CKD prediction.",
+            "medical": "Chronic systemic hypertension transmits elevated pressure to glomerular capillaries, promoting nephrosclerosis."
+        },
+        "decreasing": {
+            "plain": "Absence of hypertension pushed the model toward a lower CKD prediction.",
+            "medical": "Normotensive status protects renal microvasculature from barotrauma and arteriolar hyalinosis."
+        }
+    },
+    "dm": {
+        "increasing": {
+            "plain": "Diabetes history pushed the model toward a higher CKD prediction.",
+            "medical": "Diabetic microangiopathy causes glomerular basement membrane thickening and progressive mesangial expansion."
+        },
+        "decreasing": {
+            "plain": "Absence of diabetes pushed the model toward a lower CKD prediction.",
+            "medical": "Absence of chronic hyperglycemia significantly lowers the baseline risk of diabetic nephropathy."
+        }
+    },
+    "cad": {
+        "increasing": {
+            "plain": "History of coronary artery disease pushed the model toward a higher CKD prediction.",
+            "medical": "Cardiovascular disease shares common microvascular and atherosclerotic disease pathways with renal dysfunction."
+        },
+        "decreasing": {
+            "plain": "Absence of coronary artery disease pushed the model toward a lower CKD prediction.",
+            "medical": "Lack of overt systemic atherosclerosis correlates with preserved renal vascular perfusion."
+        }
     },
     "appet": {
-        "pos": "Poor appetite is a classic clinical manifestation of uremic retention.",
-        "neg": "Preserved appetite correlates with low circulating uremic toxin burden.",
+        "increasing": {
+            "plain": "Poor appetite pushed the model toward a higher CKD prediction.",
+            "medical": "Anorexia and uremic gastrointestinal symptoms reflect circulating uremic waste retention."
+        },
+        "decreasing": {
+            "plain": "Good appetite pushed the model toward a lower CKD prediction.",
+            "medical": "Preserved appetite indicates low circulating uremic toxin load and nutritional stability."
+        }
+    },
+    "pe": {
+        "increasing": {
+            "plain": "Presence of pedal edema (leg swelling) pushed the model toward a higher CKD prediction.",
+            "medical": "Peripheral pedal edema reflects impaired renal sodium excretion and extracellular fluid volume expansion."
+        },
+        "decreasing": {
+            "plain": "Absence of pedal edema pushed the model toward a lower CKD prediction.",
+            "medical": "Absence of dependent edema indicates effective volume regulation and sodium balance."
+        }
     },
     "ane": {
-        "pos": "Clinical anemia correlates with diminished renal parenchymal function.",
-        "neg": "Absence of clinical anemia is consistent with normal renal endocrine function.",
+        "increasing": {
+            "plain": "Clinical anemia pushed the model toward a higher CKD prediction.",
+            "medical": "Clinical anemia reflects diminished functional renal parenchyma and inadequate erythropoietin synthesis."
+        },
+        "decreasing": {
+            "plain": "Absence of anemia pushed the model toward a lower CKD prediction.",
+            "medical": "Normal red cell status indicates adequate endocrine signaling from functional renal interstitial cells."
+        }
     },
+    "rbc": {
+        "increasing": {
+            "plain": "Abnormal red blood cells in urine pushed the model toward a higher CKD prediction.",
+            "medical": "Microscopic hematuria indicates mechanical disruption of the glomerular filtration barrier."
+        },
+        "decreasing": {
+            "plain": "Normal red blood cell status in urine pushed the model toward a lower CKD prediction.",
+            "medical": "Absence of urinary erythrocytes confirms intact glomerular basement membrane integrity."
+        }
+    },
+    "pc": {
+        "increasing": {
+            "plain": "Abnormal pus cells in urine pushed the model toward a higher CKD prediction, suggesting urinary tract inflammation.",
+            "medical": "Pyuria signifies active inflammation within the urinary tract or interstitial nephritis."
+        },
+        "decreasing": {
+            "plain": "Normal pus cell levels in urine pushed the model toward a lower CKD prediction.",
+            "medical": "Absence of pyuria indicates lack of active inflammatory cell recruitment into the renal tract."
+        }
+    },
+    "pcc": {
+        "increasing": {
+            "plain": "Presence of pus cell clumps in urine pushed the model toward a higher CKD prediction.",
+            "medical": "Pus cell clumping indicates concentrated inflammatory exudate within the renal collecting system."
+        },
+        "decreasing": {
+            "plain": "Absence of pus cell clumps pushed the model toward a lower CKD prediction.",
+            "medical": "Absence of leukocytic casts or clumps confirms non-inflammatory urinary sediment."
+        }
+    },
+    "ba": {
+        "increasing": {
+            "plain": "Presence of bacteria in urine pushed the model toward a higher CKD prediction.",
+            "medical": "Bacteriuria indicates microbial colonization and risk of ascending upper urinary tract involvement."
+        },
+        "decreasing": {
+            "plain": "Absence of bacteria in urine pushed the model toward a lower CKD prediction.",
+            "medical": "Sterile urinary sediment indicates absence of active bacterial infection."
+        }
+    },
+    "age": {
+        "increasing": {
+            "plain": "Patient age profile pushed the model toward a higher CKD prediction.",
+            "medical": "Advancing age is physiologically associated with progressive nephrosclerosis and gradual nephron loss."
+        },
+        "decreasing": {
+            "plain": "Patient age profile pushed the model toward a lower CKD prediction.",
+            "medical": "Younger age is associated with preserved total functional nephron mass and higher renal reserve."
+        }
+    },
+    "bp": {
+        "increasing": {
+            "plain": "Elevated blood pressure pushed the model toward a higher CKD prediction.",
+            "medical": "Elevated systolic/diastolic blood pressure increases intraglomerular hydrostatic pressure."
+        },
+        "decreasing": {
+            "plain": "Normal blood pressure pushed the model toward a lower CKD prediction.",
+            "medical": "Normotensive hemodynamics reduce vascular strain across the afferent and efferent glomerular arterioles."
+        }
+    }
 }
 
 
 class ModelService:
-    """Production ML Inference & SHAP Explainability Service for RenalInsight."""
+    """Production ML Inference & Tree SHAP Explainability Service for RenalInsight (UCI 336)."""
 
     def __init__(self) -> None:
         self.model: Optional[Pipeline] = None
-        self.explainer: Optional[Explainer] = None
+        self.explainer: Optional[TreeExplainer] = None
         self.feature_names: Optional[List[str]] = None
         self.metadata: Optional[Dict[str, Any]] = None
         self.input_features: List[str] = []
+        self.numeric_features: List[str] = []
+        self.categorical_features: List[str] = []
         self.is_ready: bool = False
 
     def load_artifacts(self, models_dir: Optional[Path] = None) -> None:
-        """Loads model, explainer, feature names, and metadata from storage."""
+        """Loads trained Decision Tree pipeline, SHAP explainer, feature names, and metadata."""
         if models_dir is None:
             models_dir = settings.MODELS_DIR
 
@@ -168,258 +392,121 @@ class ModelService:
         with open(metadata_path, "r", encoding="utf-8") as f:
             self.metadata = json.load(f)
 
-        if hasattr(self.model, "feature_names_in_"):
-            self.input_features = list(self.model.feature_names_in_)
-        else:
-            preprocessor = self.model.named_steps.get("preprocessor")
-            if preprocessor and hasattr(preprocessor, "feature_names_in_"):
-                self.input_features = list(preprocessor.feature_names_in_)
-            else:
-                self.input_features = [
-                    "bp (Diastolic)", "bp limit", "sg", "al", "rbc", "su", "pc", "pcc",
-                    "ba", "bgr", "bu", "sod", "sc", "pot", "hemo", "pcv", "rbcc",
-                    "wbcc", "htn", "dm", "cad", "appet", "pe", "ane", "age"
-                ]
+        self.input_features = self.metadata.get("input_features", [
+            "age", "bp", "sg", "al", "su", "rbc", "pc", "pcc", "ba", "bgr",
+            "bu", "sc", "sod", "pot", "hemo", "pcv", "wbcc", "rbcc",
+            "htn", "dm", "cad", "appet", "pe", "ane"
+        ])
+        self.numeric_features = self.metadata.get("numeric_features", [
+            "age", "bp", "sg", "al", "su", "bgr", "bu", "sc", "sod", "pot",
+            "hemo", "pcv", "wbcc", "rbcc"
+        ])
+        self.categorical_features = self.metadata.get("categorical_features", [
+            "rbc", "pc", "pcc", "ba", "htn", "dm", "cad", "appet", "pe", "ane"
+        ])
 
         self.is_ready = True
         logger.info(
-            f"Successfully loaded pipeline with {len(self.input_features)} input features "
-            f"and {len(self.feature_names)} encoded features."
+            f"Successfully loaded {self.metadata.get('final_model', 'Decision Tree')} pipeline "
+            f"with {len(self.input_features)} input features and {len(self.feature_names)} encoded features."
         )
 
-    def _normalize_binary(self, val: Any, positive_values: Tuple[str, ...]) -> float:
-        """Converts string/boolean/numeric values into 0.0 or 1.0 float."""
-        if isinstance(val, (int, float)):
-            return 1.0 if float(val) >= 0.5 else 0.0
-        if isinstance(val, str):
-            val_clean = val.strip().lower()
-            if any(pos.lower() == val_clean for pos in positive_values):
-                return 1.0
-            return 0.0
-        return 0.0
+    def _clean_categorical(self, feat: str, val: Any) -> str:
+        """Normalizes categorical string inputs to match UCI 336 clean format."""
+        if val is None or pd.isna(val):
+            return "no" if feat in ("htn", "dm", "cad", "pe", "ane") else ("good" if feat == "appet" else ("normal" if feat in ("rbc", "pc") else "notpresent"))
 
-    def _normalize_category(self, feature: str, val: Any) -> str:
-        """Ensures category value matches one-hot encoder categories or closest equivalent."""
-        val_str = str(val).strip()
+        s = str(val).strip().lower().replace(" ", "").replace("_", "").replace("-", "")
 
-        # Specific normalization rules for frontend values
-        if feature == "sg":
-            if val_str in ("1.020", "1.02"):
-                return "1.019 - 1.021"
-            if val_str in ("1.015",):
-                return "1.015 - 1.017"
-            if val_str in ("1.010",):
-                return "1.009 - 1.011"
-            if val_str in ("1.005", "< 1.007"):
-                return "< 1.007"
-            if val_str in ("1.025", "≥ 1.023", ">= 1.023"):
-                return "≥ 1.023"
+        if feat in ("rbc", "pc"):
+            return "abnormal" if any(k in s for k in ("abnormal", "abn", "1", "yes", "positive")) else "normal"
 
-        elif feature == "al":
-            if val_str in ("Normal", "0", "< 0", "0.0"):
-                return "< 0"
-            if val_str in ("1", "1+", "1.0"):
-                return "1"
-            if val_str in ("2", "2+", "2.0"):
-                return "2"
-            if val_str in ("3", "3+", "3.0"):
-                return "3"
-            if val_str in ("4", "4+", "≥ 4", ">= 4", "5", "5+"):
-                return "≥ 4"
+        if feat in ("pcc", "ba"):
+            return "present" if any(k in s for k in ("present", "pres", "1", "yes", "positive")) else "notpresent"
 
-        elif feature == "su":
-            if val_str in ("Normal", "0", "< 0", "0.0"):
-                return "< 0"
-            if val_str in ("2", "2.0", "250 mg/dL", "1", "1+"):
-                return "2"
-            if val_str in ("3", "3.0", "500 mg/dL"):
-                return "3"
-            if val_str in ("4", "4.0", "1000 mg/dL"):
-                return "4"
-            if val_str in ("≥ 4", ">= 4", ">1000 mg/dL"):
-                return "≥ 4"
+        if feat in ("htn", "dm", "cad", "pe", "ane"):
+            return "yes" if any(k in s for k in ("yes", "y", "1", "true", "present", "positive")) else "no"
 
-        elif feature == "bgr":
-            if val_str in ("< 112", "< 112 mg/dL", "Normal"):
-                return "< 112"
-            if "≥ 448" in val_str or ">= 448" in val_str or "≥ 238" in val_str:
-                return "196 - 238" if "238" in val_str else "≥ 448"
+        if feat == "appet":
+            return "poor" if any(k in s for k in ("poor", "bad", "loss", "low", "1")) else "good"
 
-        elif feature == "bu":
-            if "< 34" in val_str or "< 48.1" in val_str or "Normal" in val_str:
-                return "< 48.1"
-            if "34 - 76" in val_str:
-                return "48.1 - 86.2"
-            if "76 - 118" in val_str:
-                return "86.2 - 124.3"
-            if "118 - 160" in val_str:
-                return "124.3 - 162.4"
-            if "≥ 160" in val_str or "≥ 352.9" in val_str or ">= 352.9" in val_str:
-                return "≥ 352.9"
+        return str(val).strip().lower()
 
-        elif feature == "sc":
-            if "< 1.2" in val_str or "< 3.65" in val_str or "Normal" in val_str:
-                return "< 3.65"
-            if "1.2 - 2.5" in val_str:
-                return "3.65 - 6.8"
-            if "2.5 - 4.8" in val_str:
-                return "6.8 - 9.95"
-            if "4.8 - 7.1" in val_str:
-                return "9.95 - 13.1"
-            if "≥ 7.1" in val_str or "≥ 28.85" in val_str or ">= 28.85" in val_str:
-                return "≥ 28.85"
-
-        elif feature == "pot":
-            if "< 3.5" in val_str or "3.5 - 4.5" in val_str or "4.5 - 5.5" in val_str or "< 7.31" in val_str:
-                return "< 7.31"
-            if "≥ 5.5" in val_str or "38.18 - 42.59" in val_str:
-                return "38.18 - 42.59"
-
-        elif feature == "hemo":
-            if "< 11.3" in val_str:
-                return "10 - 11.3"
-            if "≥ 16.5" in val_str:
-                return "≥ 16.5"
-            if "< 6.1" in val_str:
-                return "< 6.1"
-
-        elif feature == "pcv":
-            if "< 33.5" in val_str:
-                return "29.6 - 33.5"
-            if "≥ 49.1" in val_str:
-                return "≥ 49.1"
-            if "< 17.9" in val_str:
-                return "< 17.9"
-
-        elif feature == "rbcc":
-            if "< 3.87" in val_str:
-                return "3.28 - 3.87"
-            if "≥ 6.23" in val_str:
-                return "6.23 - 6.82"
-            if "< 2.69" in val_str:
-                return "< 2.69"
-            if "≥ 7.41" in val_str:
-                return "≥ 7.41"
-
-        elif feature == "wbcc":
-            if "≥ 12120" in val_str:
-                return "12120 - 14500"
-
-        elif feature == "age":
-            if isinstance(val, (int, float)):
-                age_num = float(val)
-                if age_num < 12:
-                    return "< 12"
-                elif age_num <= 20:
-                    return "12 - 20"
-                elif age_num <= 27:
-                    return "20 - 27"
-                elif age_num <= 35:
-                    return "27 - 35"
-                elif age_num <= 43:
-                    return "35 - 43"
-                elif age_num <= 51:
-                    return "43 - 51"
-                elif age_num <= 59:
-                    return "51 - 59"
-                elif age_num <= 66:
-                    return "59 - 66"
-                elif age_num <= 74:
-                    return "66 - 74"
-                else:
-                    return "≥ 74"
-
-        return val_str
+    def _clean_numeric(self, feat: str, val: Any) -> Optional[float]:
+        """Safely coerces numeric values to float."""
+        if val is None or val == "" or pd.isna(val):
+            return np.nan
+        try:
+            return float(val)
+        except (ValueError, TypeError):
+            # Attempt to parse leading numeric string
+            s = str(val).strip()
+            num_str = ""
+            for ch in s:
+                if ch.isdigit() or ch == ".":
+                    num_str += ch
+                elif num_str:
+                    break
+            try:
+                return float(num_str) if num_str else np.nan
+            except ValueError:
+                return np.nan
 
     def prepare_dataframe(self, input_data: Union[PatientInputSchema, Dict[str, Any]]) -> pd.DataFrame:
-        """Converts validated schema/dict into a single-row DataFrame matching the model's exact input format."""
+        """Converts input payload into a single-row DataFrame matching the 24 input features."""
         if isinstance(input_data, PatientInputSchema):
             data_dict = input_data.model_dump(by_alias=True)
         else:
             data_dict = dict(input_data)
 
-        # Helper getters for aliases
-        def get_val(*keys: str, default: Any = 0.0) -> Any:
-            for k in keys:
-                if k in data_dict and data_dict[k] is not None:
-                    return data_dict[k]
-            return default
-
         row: Dict[str, Any] = {}
 
-        # 1. bp (Diastolic)
-        bp_val = get_val("bp (Diastolic)", "bp_diastolic", "bp", default=76.0)
-        if isinstance(bp_val, (int, float)):
-            # If standard mmHg (e.g. 76.0), map 0 (<=80) or 1 (>80) to match training distribution
-            row["bp (Diastolic)"] = 1.0 if float(bp_val) > 80 else 0.0
-        else:
-            row["bp (Diastolic)"] = self._normalize_binary(bp_val, ("high", "elevated", "1", "yes"))
+        # 14 Numeric features
+        for num_col in self.numeric_features:
+            val = data_dict.get(num_col)
+            row[num_col] = self._clean_numeric(num_col, val)
 
-        # 2. bp limit
-        bp_lim = get_val("bp limit", "bp_limit", default="70 - 80")
-        if isinstance(bp_lim, (int, float)):
-            row["bp limit"] = float(bp_lim)
-        elif isinstance(bp_lim, str):
-            if "< 70" in bp_lim or "low" in bp_lim.lower():
-                row["bp limit"] = 0.0
-            elif "70 - 80" in bp_lim or "normal" in bp_lim.lower():
-                row["bp limit"] = 1.0
-            elif "80 - 90" in bp_lim or "elevated" in bp_lim.lower():
-                row["bp limit"] = 2.0
-            else:
-                row["bp limit"] = 3.0
-        else:
-            row["bp limit"] = 1.0
+        # 10 Categorical features
+        for cat_col in self.categorical_features:
+            val = data_dict.get(cat_col)
+            row[cat_col] = self._clean_categorical(cat_col, val)
 
-        # 3. rbc
-        row["rbc"] = self._normalize_binary(get_val("rbc", default="Normal"), ("abnormal", "1", "present", "yes"))
-
-        # 4. pc
-        row["pc"] = self._normalize_binary(get_val("pc", default="Normal"), ("abnormal", "1", "present", "yes"))
-
-        # 5. pcc
-        row["pcc"] = self._normalize_binary(get_val("pcc", default="Not Present"), ("present", "1", "yes"))
-
-        # 6. ba
-        row["ba"] = self._normalize_binary(get_val("ba", default="Not Present"), ("present", "1", "yes"))
-
-        # 7. htn
-        row["htn"] = self._normalize_binary(get_val("htn", default="No"), ("yes", "1", "true", "present"))
-
-        # 8. dm
-        row["dm"] = self._normalize_binary(get_val("dm", default="No"), ("yes", "1", "true", "present"))
-
-        # 9. cad
-        row["cad"] = self._normalize_binary(get_val("cad", default="No"), ("yes", "1", "true", "present"))
-
-        # 10. appet
-        row["appet"] = self._normalize_binary(get_val("appet", default="Good"), ("poor", "1", "bad", "loss"))
-
-        # 11. pe
-        row["pe"] = self._normalize_binary(get_val("pe", default="No"), ("yes", "1", "true", "present"))
-
-        # 12. ane
-        row["ane"] = self._normalize_binary(get_val("ane", default="No"), ("yes", "1", "true", "present"))
-
-        # Categorical features
-        cat_features = ["sg", "al", "su", "bgr", "bu", "sod", "sc", "pot", "hemo", "pcv", "rbcc", "wbcc", "age"]
-        for feat in cat_features:
-            raw_val = get_val(feat, default="Normal" if feat in ("al", "su") else "")
-            row[feat] = self._normalize_category(feat, raw_val)
-
-        # Build DataFrame strictly with expected column order
+        # Construct DataFrame in exact feature order
         df = pd.DataFrame([row])
         ordered_cols = [c for c in self.input_features if c in df.columns]
         return df[ordered_cols]
 
+    def _extract_shap_values(self, x_transformed: np.ndarray) -> np.ndarray:
+        """Extracts 1D SHAP values for the positive class (CKD = 1)."""
+        try:
+            shap_res = self.explainer(x_transformed)
+            arr = np.asarray(shap_res.values)
+            if arr.ndim == 3:
+                # Shape (1, 34, 2) -> take class 1
+                return arr[0, :, 1]
+            elif arr.ndim == 2:
+                # Shape (1, 34)
+                return arr[0]
+            return arr.reshape(-1)
+        except Exception:
+            # Fallback to shap_values method
+            shap_raw = self.explainer.shap_values(x_transformed)
+            if isinstance(shap_raw, list) and len(shap_raw) > 1:
+                return np.asarray(shap_raw[1])[0]
+            elif isinstance(shap_raw, np.ndarray) and shap_raw.ndim == 3:
+                return shap_raw[0, :, 1]
+            elif isinstance(shap_raw, np.ndarray) and shap_raw.ndim == 2:
+                return shap_raw[0]
+            return np.asarray(shap_raw).reshape(-1)
+
     def predict(self, input_data: Union[PatientInputSchema, Dict[str, Any]]) -> PredictionResponse:
         """
-        Executes prediction and computes local SHAP explanations for the provided patient data.
+        Executes prediction and computes local Tree SHAP explanations for the provided patient data.
         """
         if not self.is_ready or self.model is None or self.explainer is None:
             raise RuntimeError("ModelService is not ready. Call load_artifacts() first.")
 
-        # 1. Prepare formatted DataFrame
+        # 1. Prepare clean DataFrame
         df = self.prepare_dataframe(input_data)
 
         # 2. Run model inference
@@ -433,7 +520,7 @@ class ModelService:
 
         prediction_label = "CKD" if pred_class == 1 else "NOT CKD"
 
-        # Risk stratification
+        # Risk classification
         if ckd_percent >= 70.0:
             risk_level = "High"
         elif ckd_percent >= 30.0:
@@ -441,70 +528,77 @@ class ModelService:
         else:
             risk_level = "Low"
 
-        # 3. Compute SHAP explanations
+        # 3. Compute Tree SHAP feature attribution
         preprocessor = self.model.named_steps["preprocessor"]
         x_transformed = preprocessor.transform(df)
-        shap_values_raw = self.explainer.shap_values(x_transformed)
+        sample_shap = self._extract_shap_values(x_transformed)
 
-        if isinstance(shap_values_raw, list):
-            sample_shap = shap_values_raw[1][0] if len(shap_values_raw) > 1 else shap_values_raw[0][0]
-        else:
-            sample_shap = shap_values_raw[0]
-
-        # 4. Extract factors
+        # 4. Extract factors and pair with dual explanations
         increasing_factors: List[ShapFactor] = []
         decreasing_factors: List[ShapFactor] = []
         all_factors: List[ShapFactor] = []
 
-        # Find non-zero SHAP values (meaningful features)
-        active_indices = np.where(np.abs(sample_shap) > 1e-4)[0]
-
-        # Group factors by underlying clinical feature
         patient_dict = input_data.model_dump() if isinstance(input_data, PatientInputSchema) else dict(input_data)
 
-        for idx in active_indices:
-            feat_encoded = self.feature_names[idx]
-            val_shap = float(sample_shap[idx])
+        for idx, feat_encoded in enumerate(self.feature_names):
+            val_shap = float(sample_shap[idx]) if idx < len(sample_shap) else 0.0
 
-            # Determine base feature
+            # Determine base feature and observed value
             if feat_encoded.startswith("num__"):
                 base_feat = feat_encoded.replace("num__", "")
-                cat_val = patient_dict.get(base_feat, patient_dict.get(base_feat.replace(" (Diastolic)", "_diastolic"), ""))
+                raw_val = patient_dict.get(base_feat, df[base_feat].iloc[0] if base_feat in df else None)
+                val_display = round(float(raw_val), 2) if raw_val is not None and not pd.isna(raw_val) else "N/A"
             elif feat_encoded.startswith("cat__"):
                 parts = feat_encoded.replace("cat__", "").split("_", 1)
                 base_feat = parts[0]
-                cat_val = parts[1] if len(parts) > 1 else patient_dict.get(base_feat, "")
+                category_level = parts[1] if len(parts) > 1 else ""
+                raw_val = patient_dict.get(base_feat, df[base_feat].iloc[0] if base_feat in df else None)
+                val_display = str(raw_val).capitalize() if raw_val is not None else category_level
             else:
                 base_feat = feat_encoded
-                cat_val = patient_dict.get(base_feat, "")
+                raw_val = patient_dict.get(base_feat, "")
+                val_display = str(raw_val)
 
+            unit = FEATURE_UNITS.get(base_feat, "")
+            display_base = FEATURE_DISPLAY_NAMES.get(base_feat, base_feat.upper())
+            display_str = f"{display_base}: {val_display} {unit}".strip()
             category = FEATURE_CATEGORY_MAP.get(base_feat, "Kidney")
-            display_base = FEATURE_DISPLAY_NAMES.get(base_feat, base_feat.capitalize())
-            display_feature = f"{display_base} ({cat_val})" if cat_val else display_base
             direction = "increasing" if val_shap > 0 else "decreasing"
 
-            # Clinical description
-            desc = None
-            if base_feat in CLINICAL_DESCRIPTIONS:
-                desc = CLINICAL_DESCRIPTIONS[base_feat]["pos" if val_shap > 0 else "neg"]
+            # Dual explanations
+            templates = EXPLANATION_TEMPLATES.get(base_feat, {})
+            direction_key = "increasing" if val_shap > 0 else "decreasing"
+            plain_expl = templates.get(direction_key, {}).get(
+                "plain",
+                f"This factor pushed the model toward a {'higher' if val_shap > 0 else 'lower'} CKD prediction."
+            )
+            med_expl = templates.get(direction_key, {}).get(
+                "medical",
+                f"Observed biomarker state contributes {val_shap:+.4f} toward the tree classification margin."
+            )
 
             factor = ShapFactor(
                 feature=base_feat,
-                display_feature=display_feature,
-                value=cat_val if cat_val != "" else round(val_shap, 4),
+                encoded_feature=feat_encoded,
+                display_feature=display_str,
+                value=val_display,
+                unit=unit,
                 shap_value=round(val_shap, 4),
                 direction=direction,
                 category=category,
-                description=desc,
+                plain_explanation=plain_expl,
+                medical_explanation=med_expl,
+                description=plain_expl,
             )
 
             all_factors.append(factor)
-            if direction == "increasing":
-                increasing_factors.append(factor)
-            else:
-                decreasing_factors.append(factor)
+            if abs(val_shap) > 1e-4:
+                if direction == "increasing":
+                    increasing_factors.append(factor)
+                else:
+                    decreasing_factors.append(factor)
 
-        # Sort factors by impact
+        # Sort factors by absolute impact
         all_factors.sort(key=lambda x: abs(x.shap_value), reverse=True)
         increasing_factors.sort(key=lambda x: abs(x.shap_value), reverse=True)
         decreasing_factors.sort(key=lambda x: abs(x.shap_value), reverse=True)
@@ -514,8 +608,8 @@ class ModelService:
             probability=ckd_percent,
             not_ckd_probability=not_ckd_percent,
             risk_level=risk_level,
-            model_name="Logistic Regression (XAI-Enabled)",
-            explainability_method="SHAP (SHapley Additive exPlanations)",
+            model_name=f"{self.metadata.get('final_model', 'Decision Tree')} (UCI 336)",
+            explainability_method="Tree SHAP (TreeExplainer)",
             timestamp=datetime.utcnow().isoformat() + "Z",
             increasing_factors=increasing_factors,
             decreasing_factors=decreasing_factors,
@@ -527,22 +621,29 @@ class ModelService:
         if not self.is_ready or self.metadata is None:
             raise RuntimeError("ModelService is not ready. Call load_artifacts() first.")
 
+        test_metrics = self.metadata.get("test_metrics", {})
         return ModelInfoResponse(
-            model_type=self.metadata.get("model_type", "Logistic Regression"),
+            project=self.metadata.get("project", "RenalInsight"),
+            dataset=self.metadata.get("dataset", "UCI 336 Chronic Kidney Disease"),
+            model_type=self.metadata.get("final_model", "Decision Tree"),
+            model_key=self.metadata.get("model_key", "dtree"),
             target=self.metadata.get("target", "class"),
-            positive_class=self.metadata.get("positive_class", "CKD"),
-            negative_class=self.metadata.get("negative_class", "Not CKD"),
-            dataset_rows=self.metadata.get("dataset_rows", 200),
-            dataset_features=self.metadata.get("dataset_features", 28),
-            cv_roc_auc=self.metadata.get("cv_roc_auc", 1.0),
-            test_accuracy=self.metadata.get("test_accuracy", 1.0),
-            test_precision=self.metadata.get("test_precision", 1.0),
-            test_recall=self.metadata.get("test_recall", 1.0),
-            test_f1=self.metadata.get("test_f1", 1.0),
-            shap_enabled=self.metadata.get("shap_enabled", True),
+            positive_class="CKD",
+            negative_class="Not CKD",
+            dataset_rows=400,
+            dataset_features=len(self.input_features),
+            test_accuracy=test_metrics.get("Accuracy", 0.9625),
+            test_precision=test_metrics.get("Precision", 1.0),
+            test_recall=test_metrics.get("Recall (Sensitivity)", 0.94),
+            test_specificity=test_metrics.get("Specificity", 1.0),
+            test_f1=test_metrics.get("F1", 0.9691),
+            test_roc_auc=test_metrics.get("ROC-AUC", 0.989),
+            shap_enabled=True,
             input_feature_count=len(self.input_features),
             input_features=self.input_features,
-            encoded_feature_count=len(self.feature_names or []),
+            numeric_features=self.numeric_features,
+            categorical_features=self.categorical_features,
+            transformed_feature_count=len(self.feature_names or []),
         )
 
 

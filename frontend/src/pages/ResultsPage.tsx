@@ -121,7 +121,7 @@ export const ResultsPage: React.FC = () => {
         onEditInputs={() => navigate('/predict')}
       />
 
-      {/* Beginner-Friendly 25 Features & SHAP Guide Section */}
+      {/* Beginner-Friendly 24 Features & SHAP Guide Section */}
       <div ref={guideRef} className="pt-4">
         <CkdGuideSection />
       </div>

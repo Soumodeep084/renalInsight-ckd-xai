@@ -3,6 +3,7 @@ import { HeartPulse } from 'lucide-react';
 import { SectionCard } from './SectionCard';
 import { FormField } from './FormField';
 import { SegmentedToggle } from './SegmentedToggle';
+import { BINARY_YES_NO, APPETITE_OPTIONS } from '../../data/formOptions';
 import { PatientInput } from '../../types/ckd';
 
 interface SymptomsSectionProps {
@@ -16,22 +17,12 @@ export const SymptomsSection: React.FC<SymptomsSectionProps> = ({
   onChange,
   errors = {},
 }) => {
-  const binaryOptions = [
-    { value: 'No', label: 'No' },
-    { value: 'Yes', label: 'Yes' },
-  ];
-
-  const appetiteOptions = [
-    { value: 'Good', label: 'Good' },
-    { value: 'Poor', label: 'Poor' },
-  ];
-
   return (
     <SectionCard
-      title="Medical Conditions & Symptoms"
-      subtitle="Comorbid conditions, systemic cardiovascular history & uremic symptoms"
+      title="Medical History & Symptoms"
+      subtitle="Comorbid cardiovascular conditions, metabolic history & uremic symptoms"
       icon={HeartPulse}
-      badge="Clinical Manifestations"
+      badge="Clinical History (6 Features)"
     >
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {/* Hypertension */}
@@ -39,14 +30,14 @@ export const SymptomsSection: React.FC<SymptomsSectionProps> = ({
           id="htn"
           label="Hypertension"
           required
-          tooltip="Diagnosed systemic arterial hypertension. Key contributor to renal vascular damage."
+          tooltip="Diagnosed high blood pressure. Chronic high pressure contributes to glomerular microvascular sclerosis."
           error={errors.htn}
         >
           <SegmentedToggle
             id="htn"
             value={formData.htn}
             onChange={(val) => onChange('htn', val)}
-            options={binaryOptions}
+            options={BINARY_YES_NO}
           />
         </FormField>
 
@@ -55,14 +46,14 @@ export const SymptomsSection: React.FC<SymptomsSectionProps> = ({
           id="dm"
           label="Diabetes Mellitus"
           required
-          tooltip="History of type 1 or type 2 diabetes. Primary cause of end-stage renal disease worldwide."
+          tooltip="Diagnosed history of diabetes. Diabetic microvascular pathology is a major contributor to renal dysfunction."
           error={errors.dm}
         >
           <SegmentedToggle
             id="dm"
             value={formData.dm}
             onChange={(val) => onChange('dm', val)}
-            options={binaryOptions}
+            options={BINARY_YES_NO}
           />
         </FormField>
 
@@ -71,14 +62,14 @@ export const SymptomsSection: React.FC<SymptomsSectionProps> = ({
           id="cad"
           label="Coronary Artery Disease"
           required
-          tooltip="Presence of ischemic heart disease or coronary artery atherosclerosis."
+          tooltip="History of ischemic heart disease or coronary artery atherosclerosis."
           error={errors.cad}
         >
           <SegmentedToggle
             id="cad"
             value={formData.cad}
             onChange={(val) => onChange('cad', val)}
-            options={binaryOptions}
+            options={BINARY_YES_NO}
           />
         </FormField>
 
@@ -87,30 +78,30 @@ export const SymptomsSection: React.FC<SymptomsSectionProps> = ({
           id="appet"
           label="Appetite Status"
           required
-          tooltip="Nutritional status assessment. Poor appetite (Anorexia) often indicates uremic toxin retention."
+          tooltip="Nutritional status assessment. Poor appetite (Anorexia) often correlates with uremic retention."
           error={errors.appet}
         >
           <SegmentedToggle
             id="appet"
             value={formData.appet}
             onChange={(val) => onChange('appet', val)}
-            options={appetiteOptions}
+            options={APPETITE_OPTIONS}
           />
         </FormField>
 
         {/* Pedal Edema */}
         <FormField
           id="pe"
-          label="Pedal Edema"
+          label="Pedal Edema (Leg Swelling)"
           required
-          tooltip="Swelling in feet/lower limbs due to renal sodium excretion reduction and fluid retention."
+          tooltip="Swelling in feet or ankles due to fluid retention and impaired renal sodium excretion."
           error={errors.pe}
         >
           <SegmentedToggle
             id="pe"
             value={formData.pe}
             onChange={(val) => onChange('pe', val)}
-            options={binaryOptions}
+            options={BINARY_YES_NO}
           />
         </FormField>
 
@@ -119,14 +110,14 @@ export const SymptomsSection: React.FC<SymptomsSectionProps> = ({
           id="ane"
           label="Clinical Anemia"
           required
-          tooltip="Diagnosed anemia secondary to impaired renal erythropoietin secretion."
+          tooltip="Diagnosed anemia due to impaired erythropoietin production by damaged kidneys."
           error={errors.ane}
         >
           <SegmentedToggle
             id="ane"
             value={formData.ane}
             onChange={(val) => onChange('ane', val)}
-            options={binaryOptions}
+            options={BINARY_YES_NO}
           />
         </FormField>
       </div>

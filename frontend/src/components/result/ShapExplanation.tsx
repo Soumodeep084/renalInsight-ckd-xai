@@ -68,7 +68,7 @@ export const ShapExplanation: React.FC<ShapExplanationProps> = ({
 
     // Dual explanations
     const dual = getDualExplanation(factor.feature, factor.direction, factor.value, factor.shapValue);
-    const generalText = factor.generalExplanation || dual.generalExplanation;
+    const generalText = factor.plainExplanation || factor.generalExplanation || dual.generalExplanation;
     const medicalText = factor.medicalExplanation || factor.description || dual.medicalExplanation;
     const strength = factor.influenceStrength || dual.influenceStrength;
 
@@ -172,8 +172,8 @@ export const ShapExplanation: React.FC<ShapExplanationProps> = ({
           <div
             className={`h-full rounded-full transition-all duration-500 ease-out ${
               isIncreasing
-                ? 'bg-gradient-to-r from-rose-400 to-rose-600'
-                : 'bg-gradient-to-r from-teal-400 to-teal-600'
+                ? 'bg-linear-to-r from-rose-400 to-rose-600'
+                : 'bg-linear-to-r from-teal-400 to-teal-600'
             }`}
             style={{ width: `${Math.max(barWidthPercent, 4)}%` }}
           />
@@ -267,7 +267,7 @@ export const ShapExplanation: React.FC<ShapExplanationProps> = ({
             className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-bold shrink-0 transition-colors shadow-xs cursor-pointer"
           >
             <BookOpen className="w-3.5 h-3.5" />
-            <span>View Full 25-Feature Guide</span>
+            <span>View Full 24-Feature Guide</span>
           </button>
         )}
       </div>
@@ -474,7 +474,7 @@ export const ShapExplanation: React.FC<ShapExplanationProps> = ({
             Understanding SHAP Feature Attributions
           </h5>
           <p className="leading-relaxed">
-            SHAP (SHapley Additive exPlanations) calculates how much each of your 25 clinical markers influenced the AI's calculation.
+            SHAP (SHapley Additive exPlanations) calculates how much each of your 24 clinical markers influenced the AI's calculation.
             <strong className="text-slate-800 font-semibold"> Remember:</strong> SHAP explains what the statistical model noticed in your data, not a direct medical diagnosis. Clinical health decisions must always be discussed with a qualified medical professional.
           </p>
         </div>

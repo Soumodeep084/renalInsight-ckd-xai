@@ -35,40 +35,39 @@ def test_api_suite():
         print("Status:", resp.status_code)
         print("Body:", resp.json())
         assert resp.status_code == 200
-        assert resp.json()["model_type"] == "Logistic Regression"
-        assert resp.json()["input_feature_count"] == 25
-        assert resp.json()["encoded_feature_count"] == 108
+        assert resp.json()["model_type"] == "Decision Tree"
+        assert resp.json()["input_feature_count"] == 24
+        assert resp.json()["encoded_feature_count"] == 34
 
-        # 4. Test POST /predict (Low Risk Patient - 25 exact features matching frontend schema)
+        # 4. Test POST /predict (Low Risk / Healthy Patient)
         low_risk_payload = {
-            "age": "35 - 43",
-            "bp_diastolic": 72.0,
-            "bp_limit": "70 - 80",
-            "sg": "1.019 - 1.021",
-            "al": "< 0",
-            "su": "< 0",
-            "rbc": "Normal",
-            "pc": "Normal",
-            "pcc": "Not Present",
-            "ba": "Not Present",
-            "bgr": "< 112",
-            "bu": "< 48.1",
-            "sod": "138 - 143",
-            "sc": "< 3.65",
-            "pot": "< 7.31",
-            "hemo": "13.9 - 15.2",
-            "pcv": "41.3 - 45.2",
-            "rbcc": "5.05 - 5.64",
-            "wbcc": "4980 - 7360",
-            "htn": "No",
-            "dm": "No",
-            "cad": "No",
-            "appet": "Good",
-            "pe": "No",
-            "ane": "No"
+            "age": 35.0,
+            "bp": 70.0,
+            "sg": 1.025,
+            "al": 0.0,
+            "su": 0.0,
+            "rbc": "normal",
+            "pc": "normal",
+            "pcc": "notpresent",
+            "ba": "notpresent",
+            "bgr": 95.0,
+            "bu": 25.0,
+            "sc": 0.8,
+            "sod": 140.0,
+            "pot": 4.2,
+            "hemo": 16.0,
+            "pcv": 48.0,
+            "wbcc": 6500.0,
+            "rbcc": 5.4,
+            "htn": "no",
+            "dm": "no",
+            "cad": "no",
+            "appet": "good",
+            "pe": "no",
+            "ane": "no"
         }
         resp = client.post("/predict", json=low_risk_payload)
-        print("\n=== POST /predict (Low Risk - 25 Features) ===")
+        print("\n=== POST /predict (Low Risk - 24 Features) ===")
         print("Status:", resp.status_code)
         data = resp.json()
         print("Prediction:", data["prediction"])
@@ -81,36 +80,35 @@ def test_api_suite():
         assert data["risk_level"] == "Low"
         assert len(data["decreasing_factors"]) > 0
 
-        # 5. Test POST /predict (High Risk Patient - 25 exact features matching frontend schema)
+        # 5. Test POST /predict (High Risk / CKD Patient)
         high_risk_payload = {
-            "age": "59 - 66",
-            "bp_diastolic": 95.0,
-            "bp_limit": "≥ 90",
-            "sg": "1.009 - 1.011",
-            "al": "3",
-            "su": "2",
-            "rbc": "Abnormal",
-            "pc": "Abnormal",
-            "pcc": "Present",
-            "ba": "Not Present",
-            "bgr": "196 - 238",
-            "bu": "86.2 - 124.3",
-            "sod": "123 - 128",
-            "sc": "3.65 - 6.8",
-            "pot": "38.18 - 42.59",
-            "hemo": "10 - 11.3",
-            "pcv": "29.6 - 33.5",
-            "rbcc": "3.28 - 3.87",
-            "wbcc": "9740 - 12120",
-            "htn": "Yes",
-            "dm": "Yes",
-            "cad": "Yes",
-            "appet": "Poor",
-            "pe": "Yes",
-            "ane": "Yes"
+            "age": 65.0,
+            "bp": 90.0,
+            "sg": 1.010,
+            "al": 3.0,
+            "su": 2.0,
+            "rbc": "abnormal",
+            "pc": "abnormal",
+            "pcc": "present",
+            "ba": "present",
+            "bgr": 220.0,
+            "bu": 75.0,
+            "sc": 4.5,
+            "sod": 128.0,
+            "pot": 5.8,
+            "hemo": 8.5,
+            "pcv": 28.0,
+            "wbcc": 12500.0,
+            "rbcc": 3.1,
+            "htn": "yes",
+            "dm": "yes",
+            "cad": "yes",
+            "appet": "poor",
+            "pe": "yes",
+            "ane": "yes"
         }
         resp = client.post("/predict", json=high_risk_payload)
-        print("\n=== POST /predict (High Risk - 25 Features) ===")
+        print("\n=== POST /predict (High Risk - 24 Features) ===")
         print("Status:", resp.status_code)
         data = resp.json()
         print("Prediction:", data["prediction"])
@@ -123,40 +121,8 @@ def test_api_suite():
         assert data["risk_level"] == "High"
         assert len(data["increasing_factors"]) > 0
 
-        # 6. Test Contract with Model Native Names (e.g. 'bp (Diastolic)', 'bp limit')
-        native_payload = {
-            "age": "59 - 66",
-            "bp (Diastolic)": 76.0,
-            "bp limit": "70 - 80",
-            "sg": "1.019 - 1.021",
-            "al": "< 0",
-            "su": "< 0",
-            "rbc": "Normal",
-            "pc": "Normal",
-            "pcc": "Not Present",
-            "ba": "Not Present",
-            "bgr": "< 112",
-            "bu": "< 48.1",
-            "sod": "138 - 143",
-            "sc": "< 3.65",
-            "pot": "< 7.31",
-            "hemo": "13.9 - 15.2",
-            "pcv": "41.3 - 45.2",
-            "rbcc": "5.05 - 5.64",
-            "wbcc": "4980 - 7360",
-            "htn": "No",
-            "dm": "No",
-            "cad": "No",
-            "appet": "Good",
-            "pe": "No",
-            "ane": "No"
-        }
-        resp = client.post("/predict", json=native_payload)
-        assert resp.status_code == 200
-        assert resp.json()["prediction"] in ["CKD", "NOT CKD"]
-
-        # 7. Test Validation Error handling
-        resp = client.post("/predict", json={"age": {"nested": "invalid"}})
+        # 6. Test Validation Error handling
+        resp = client.post("/predict", json={"age": "invalid_string_that_cannot_be_float"})
         print("\n=== POST /predict (Invalid Payload) ===")
         print("Status:", resp.status_code)
         assert resp.status_code == 422
@@ -167,4 +133,3 @@ def test_api_suite():
 
 if __name__ == "__main__":
     test_api_suite()
-

@@ -8,10 +8,8 @@ import {
   SG_OPTIONS,
   ALBUMIN_OPTIONS,
   SUGAR_OPTIONS,
-  RBC_OPTIONS,
-  PC_OPTIONS,
-  PCC_OPTIONS,
-  BA_OPTIONS,
+  BINARY_NORMAL_ABNORMAL,
+  BINARY_PRESENT_NOTPRESENT,
 } from '../../data/formOptions';
 import { PatientInput } from '../../types/ckd';
 
@@ -28,10 +26,10 @@ export const KidneyUrineSection: React.FC<KidneyUrineSectionProps> = ({
 }) => {
   return (
     <SectionCard
-      title="Kidney & Urine Parameters"
-      subtitle="Urinalysis indicators, protein excretion & microscopic urinary findings"
+      title="Kidney & Urinalysis Parameters"
+      subtitle="Urine concentration, protein leakage & microscopic urinary sediment findings"
       icon={Droplet}
-      badge="Urinalysis"
+      badge="Urinalysis (7 Features)"
     >
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {/* Specific Gravity */}
@@ -39,14 +37,14 @@ export const KidneyUrineSection: React.FC<KidneyUrineSectionProps> = ({
           id="sg"
           label="Specific Gravity"
           required
-          tooltip="Measures urine concentration capability. Low values (< 1.015) may indicate impaired renal concentrating ability."
+          tooltip="Measures urine concentration. Normal range is 1.015 – 1.025. Low values indicate reduced renal concentrating ability."
           error={errors.sg}
         >
           <SelectField
             id="sg"
-            value={formData.sg}
-            onChange={(val) => onChange('sg', val)}
-            options={SG_OPTIONS}
+            value={formData.sg.toString()}
+            onChange={(val) => onChange('sg', parseFloat(val))}
+            options={SG_OPTIONS.map((o) => ({ value: o.value.toString(), label: o.label }))}
             hasError={!!errors.sg}
           />
         </FormField>
@@ -54,16 +52,17 @@ export const KidneyUrineSection: React.FC<KidneyUrineSectionProps> = ({
         {/* Albumin */}
         <FormField
           id="al"
-          label="Albuminuria (Protein)"
+          label="Albumin (Urine Protein)"
+          unit="scale (0-5)"
           required
-          tooltip="Presence of albumin in urine. Key marker for glomerular membrane breakdown."
+          tooltip="Presence of protein in urine (0 = Negative/Normal, 1+ to 5+ indicates worsening proteinuria)."
           error={errors.al}
         >
           <SelectField
             id="al"
-            value={formData.al}
-            onChange={(val) => onChange('al', val)}
-            options={ALBUMIN_OPTIONS}
+            value={formData.al.toString()}
+            onChange={(val) => onChange('al', parseInt(val, 10))}
+            options={ALBUMIN_OPTIONS.map((o) => ({ value: o.value.toString(), label: o.label }))}
             hasError={!!errors.al}
           />
         </FormField>
@@ -72,15 +71,16 @@ export const KidneyUrineSection: React.FC<KidneyUrineSectionProps> = ({
         <FormField
           id="su"
           label="Urinary Glucose (Sugar)"
+          unit="scale (0-5)"
           required
-          tooltip="Excretion of glucose in urine, associated with hyperglycemia or tubular reabsorption defects."
+          tooltip="Presence of sugar in urine (0 = Negative/Normal, 1+ to 5+ indicates glucosuria)."
           error={errors.su}
         >
           <SelectField
             id="su"
-            value={formData.su}
-            onChange={(val) => onChange('su', val)}
-            options={SUGAR_OPTIONS}
+            value={formData.su.toString()}
+            onChange={(val) => onChange('su', parseInt(val, 10))}
+            options={SUGAR_OPTIONS.map((o) => ({ value: o.value.toString(), label: o.label }))}
             hasError={!!errors.su}
           />
         </FormField>
@@ -97,23 +97,23 @@ export const KidneyUrineSection: React.FC<KidneyUrineSectionProps> = ({
             id="rbc"
             value={formData.rbc}
             onChange={(val) => onChange('rbc', val)}
-            options={RBC_OPTIONS}
+            options={BINARY_NORMAL_ABNORMAL}
           />
         </FormField>
 
         {/* Pus Cell */}
         <FormField
           id="pc"
-          label="Pus Cell (WBC in Urine)"
+          label="Pus Cells (Pyuria)"
           required
-          tooltip="Presence of white blood cells in urine (Pyuria), signaling inflammation or pyelonephritis."
+          tooltip="Presence of white blood cells in urine, signaling urinary inflammation or infection."
           error={errors.pc}
         >
           <SegmentedToggle
             id="pc"
             value={formData.pc}
             onChange={(val) => onChange('pc', val)}
-            options={PC_OPTIONS}
+            options={BINARY_NORMAL_ABNORMAL}
           />
         </FormField>
 
@@ -129,7 +129,7 @@ export const KidneyUrineSection: React.FC<KidneyUrineSectionProps> = ({
             id="pcc"
             value={formData.pcc}
             onChange={(val) => onChange('pcc', val)}
-            options={PCC_OPTIONS}
+            options={BINARY_PRESENT_NOTPRESENT}
           />
         </FormField>
 
@@ -138,7 +138,7 @@ export const KidneyUrineSection: React.FC<KidneyUrineSectionProps> = ({
           id="ba"
           label="Bacteria"
           required
-          tooltip="Microscopic bacteria detection in unspun clean catch urine."
+          tooltip="Microscopic bacteria detection in clean-catch urine specimen."
           error={errors.ba}
           className="md:col-span-2 lg:col-span-1"
         >
@@ -146,7 +146,7 @@ export const KidneyUrineSection: React.FC<KidneyUrineSectionProps> = ({
             id="ba"
             value={formData.ba}
             onChange={(val) => onChange('ba', val)}
-            options={BA_OPTIONS}
+            options={BINARY_PRESENT_NOTPRESENT}
           />
         </FormField>
       </div>

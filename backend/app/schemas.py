@@ -4,147 +4,168 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 # ---------------------------------------------------------------------------
-# Patient Input Schemas (Exact 25 Final Features)
+# Patient Input Schemas (UCI 336 - 24 Final Predictors)
 # ---------------------------------------------------------------------------
 
 class PatientInputSchema(BaseModel):
     """
-    Patient Clinical Input Schema for Chronic Kidney Disease (CKD) risk evaluation.
-    Supports exact model feature names, snake_case aliases, and frontend preset formats across 25 features.
+    Patient Clinical Input Schema for Chronic Kidney Disease (CKD) prediction.
+    Corresponds to the 24 predictors used in the UCI 336 Decision Tree pipeline.
     """
-    # --- Demographics & Resting Hemodynamics (3 features) ---
-    age: Union[str, int, float] = Field(
-        default="59 - 66",
-        description="Patient age or age group interval (e.g., '59 - 66', '35 - 43', '< 12', '≥ 74', or numeric)",
-        examples=["59 - 66", 62]
+    # --- Demographics & Vitals (2 features) ---
+    age: Optional[float] = Field(
+        default=48.0,
+        ge=1.0,
+        le=120.0,
+        description="Patient age in years (e.g. 48)",
+        examples=[48.0, 65.0]
     )
-    bp_diastolic: Union[float, int] = Field(
-        default=76.0,
-        alias="bp (Diastolic)",
-        description="Resting diastolic blood pressure in mmHg (e.g. 76, 80, 1.0/0.0 encoded)",
-        examples=[76.0, 80]
-    )
-    bp_limit: Union[str, float, int] = Field(
-        default="70 - 80",
-        alias="bp limit",
-        description="Categorical blood pressure limit category (e.g., '< 70', '70 - 80', '80 - 90', '≥ 90', or 0..3)",
-        examples=["70 - 80", 1.0]
+    bp: Optional[float] = Field(
+        default=80.0,
+        ge=40.0,
+        le=250.0,
+        description="Blood pressure in mm Hg (e.g. 80)",
+        examples=[80.0, 90.0]
     )
 
-    # --- Urinalysis & Kidney Function Markers (7 features) ---
-    sg: str = Field(
-        default="1.019 - 1.021",
-        description="Urine Specific Gravity interval (e.g., '1.019 - 1.021', '1.015 - 1.017', '1.009 - 1.011', '< 1.007', '≥ 1.023')",
-        examples=["1.019 - 1.021", "< 1.007"]
+    # --- Urinalysis & Kidney Function (7 features) ---
+    sg: Optional[float] = Field(
+        default=1.020,
+        ge=1.000,
+        le=1.040,
+        description="Urine specific gravity (e.g. 1.005, 1.010, 1.015, 1.020, 1.025)",
+        examples=[1.020, 1.010]
     )
-    al: Union[str, int, float] = Field(
-        default="< 0",
-        description="Albuminuria level (e.g., '< 0', '1', '2', '3', '≥ 4')",
-        examples=["< 0", "1", "3"]
+    al: Optional[float] = Field(
+        default=0.0,
+        ge=0.0,
+        le=5.0,
+        description="Albuminuria level on a 0–5 scale (0=None, 1=Trace/1+, 2=2+, 3=3+, 4=4+, 5=5+)",
+        examples=[0.0, 1.0, 3.0]
     )
-    su: Union[str, int, float] = Field(
-        default="< 0",
-        description="Urinary glucose / sugar level (e.g., '< 0', '2', '3', '4', '≥ 4')",
-        examples=["< 0", "2"]
+    su: Optional[float] = Field(
+        default=0.0,
+        ge=0.0,
+        le=5.0,
+        description="Urinary glucose level on a 0–5 scale (0=None, 1=1+, 2=2+, 3=3+, 4=4+, 5=5+)",
+        examples=[0.0, 2.0]
     )
-    rbc: Union[str, float, int] = Field(
-        default="Normal",
-        description="Red blood cells in urine sediment (e.g., 'Normal', 'Abnormal', 0.0, 1.0)",
-        examples=["Normal", "Abnormal", 0.0]
+    rbc: Optional[str] = Field(
+        default="normal",
+        description="Red blood cells in urine sediment ('normal' or 'abnormal')",
+        examples=["normal", "abnormal"]
     )
-    pc: Union[str, float, int] = Field(
-        default="Normal",
-        description="Pus cells (pyuria) in urine sediment (e.g., 'Normal', 'Abnormal', 0.0, 1.0)",
-        examples=["Normal", "Abnormal", 0.0]
+    pc: Optional[str] = Field(
+        default="normal",
+        description="Pus cells (pyuria) in urine sediment ('normal' or 'abnormal')",
+        examples=["normal", "abnormal"]
     )
-    pcc: Union[str, float, int] = Field(
-        default="Not Present",
-        description="Pus cell clumps (e.g., 'Not Present', 'Present', 0.0, 1.0)",
-        examples=["Not Present", "Present", 0.0]
+    pcc: Optional[str] = Field(
+        default="notpresent",
+        description="Pus cell clumps in urine ('notpresent' or 'present')",
+        examples=["notpresent", "present"]
     )
-    ba: Union[str, float, int] = Field(
-        default="Not Present",
-        description="Bacteria presence in urine (e.g., 'Not Present', 'Present', 0.0, 1.0)",
-        examples=["Not Present", "Present", 0.0]
+    ba: Optional[str] = Field(
+        default="notpresent",
+        description="Bacteria presence in urine ('notpresent' or 'present')",
+        examples=["notpresent", "present"]
     )
 
-    # --- Blood Biochemistry & Hematology (9 features) ---
-    bgr: str = Field(
-        default="< 112",
-        description="Random Blood Glucose level in mg/dL interval (e.g., '< 112', '112 - 154', '154 - 196', '≥ 448')",
-        examples=["< 112", "112 - 154"]
+    # --- Blood Chemistry & Hematology (9 features) ---
+    bgr: Optional[float] = Field(
+        default=121.0,
+        ge=30.0,
+        le=600.0,
+        description="Random blood glucose level in mg/dL (e.g. 121)",
+        examples=[121.0, 220.0]
     )
-    bu: str = Field(
-        default="< 48.1",
-        description="Blood Urea level in mg/dL interval (e.g., '< 48.1', '48.1 - 86.2', '86.2 - 124.3', '≥ 352.9')",
-        examples=["< 48.1", "48.1 - 86.2"]
+    bu: Optional[float] = Field(
+        default=36.0,
+        ge=1.0,
+        le=500.0,
+        description="Blood urea level in mg/dL (e.g. 36)",
+        examples=[36.0, 75.0]
     )
-    sod: str = Field(
-        default="138 - 143",
-        description="Serum Sodium level in mEq/L interval (e.g., '138 - 143', '133 - 138', '< 118', '≥ 158')",
-        examples=["138 - 143"]
+    sc: Optional[float] = Field(
+        default=1.2,
+        ge=0.1,
+        le=50.0,
+        description="Serum creatinine level in mg/dL (e.g. 1.2)",
+        examples=[1.2, 4.5]
     )
-    sc: str = Field(
-        default="< 3.65",
-        description="Serum Creatinine level in mg/dL interval (e.g., '< 3.65', '3.65 - 6.8', '6.8 - 9.95', '≥ 28.85')",
-        examples=["< 3.65", "3.65 - 6.8"]
+    sod: Optional[float] = Field(
+        default=137.0,
+        ge=80.0,
+        le=200.0,
+        description="Serum sodium level in mEq/L (e.g. 137)",
+        examples=[137.0, 128.0]
     )
-    pot: str = Field(
-        default="< 7.31",
-        description="Serum Potassium level in mEq/L interval (e.g., '< 7.31', '38.18 - 42.59')",
-        examples=["< 7.31", "38.18 - 42.59"]
+    pot: Optional[float] = Field(
+        default=4.4,
+        ge=1.0,
+        le=15.0,
+        description="Serum potassium level in mEq/L (e.g. 4.4)",
+        examples=[4.4, 5.8]
     )
-    hemo: str = Field(
-        default="13.9 - 15.2",
-        description="Hemoglobin level in g/dL interval (e.g., '15.2 - 16.5', '13.9 - 15.2', '< 6.1', '≥ 16.5')",
-        examples=["15.2 - 16.5", "13.9 - 15.2"]
+    hemo: Optional[float] = Field(
+        default=15.4,
+        ge=2.0,
+        le=25.0,
+        description="Hemoglobin level in g/dL (e.g. 15.4)",
+        examples=[15.4, 8.5]
     )
-    pcv: str = Field(
-        default="41.3 - 45.2",
-        description="Packed Cell Volume (Hematocrit %) interval (e.g., '41.3 - 45.2', '< 17.9', '≥ 49.1')",
-        examples=["41.3 - 45.2"]
+    pcv: Optional[float] = Field(
+        default=44.0,
+        ge=10.0,
+        le=70.0,
+        description="Packed cell volume / Hematocrit percentage (e.g. 44)",
+        examples=[44.0, 28.0]
     )
-    rbcc: str = Field(
-        default="5.05 - 5.64",
-        description="Red Blood Cell Count in M/µL interval (e.g., '5.05 - 5.64', '< 2.69', '≥ 7.41')",
-        examples=["5.05 - 5.64"]
+    wbcc: Optional[float] = Field(
+        default=7800.0,
+        ge=1000.0,
+        le=50000.0,
+        description="White blood cell count in cells/cumm (e.g. 7800)",
+        examples=[7800.0, 12500.0]
     )
-    wbcc: str = Field(
-        default="4980 - 7360",
-        description="White Blood Cell Count in cells/cumm interval (e.g., '4980 - 7360', '< 4980', '19260 - 21640')",
-        examples=["4980 - 7360"]
+    rbcc: Optional[float] = Field(
+        default=5.2,
+        ge=1.0,
+        le=10.0,
+        description="Red blood cell count in millions/cmm (e.g. 5.2)",
+        examples=[5.2, 3.1]
     )
 
     # --- Comorbidities & Clinical Symptoms (6 features) ---
-    htn: Union[str, float, int] = Field(
-        default="No",
-        description="Hypertension diagnosis (e.g., 'No', 'Yes', 0.0, 1.0)",
-        examples=["No", "Yes", 0.0]
+    htn: Optional[str] = Field(
+        default="no",
+        description="Hypertension diagnosis ('no' or 'yes')",
+        examples=["no", "yes"]
     )
-    dm: Union[str, float, int] = Field(
-        default="No",
-        description="Diabetes Mellitus diagnosis (e.g., 'No', 'Yes', 0.0, 1.0)",
-        examples=["No", "Yes", 0.0]
+    dm: Optional[str] = Field(
+        default="no",
+        description="Diabetes mellitus diagnosis ('no' or 'yes')",
+        examples=["no", "yes"]
     )
-    cad: Union[str, float, int] = Field(
-        default="No",
-        description="Coronary Artery Disease diagnosis (e.g., 'No', 'Yes', 0.0, 1.0)",
-        examples=["No", "Yes", 0.0]
+    cad: Optional[str] = Field(
+        default="no",
+        description="Coronary artery disease history ('no' or 'yes')",
+        examples=["no", "yes"]
     )
-    appet: Union[str, float, int] = Field(
-        default="Good",
-        description="Appetite status (e.g., 'Good', 'Poor', 0.0, 1.0)",
-        examples=["Good", "Poor", 0.0]
+    appet: Optional[str] = Field(
+        default="good",
+        description="Appetite status ('good' or 'poor')",
+        examples=["good", "poor"]
     )
-    pe: Union[str, float, int] = Field(
-        default="No",
-        description="Pedal Edema (e.g., 'No', 'Yes', 0.0, 1.0)",
-        examples=["No", "Yes", 0.0]
+    pe: Optional[str] = Field(
+        default="no",
+        description="Pedal edema swelling ('no' or 'yes')",
+        examples=["no", "yes"]
     )
-    ane: Union[str, float, int] = Field(
-        default="No",
-        description="Clinical Anemia (e.g., 'No', 'Yes', 0.0, 1.0)",
-        examples=["No", "Yes", 0.0]
+    ane: Optional[str] = Field(
+        default="no",
+        description="Clinical anemia ('no' or 'yes')",
+        examples=["no", "yes"]
     )
 
     model_config = ConfigDict(
@@ -152,31 +173,30 @@ class PatientInputSchema(BaseModel):
         extra="allow",
         json_schema_extra={
             "example": {
-                "age": "59 - 66",
-                "bp_diastolic": 76.0,
-                "bp_limit": "70 - 80",
-                "sg": "1.019 - 1.021",
-                "al": "< 0",
-                "su": "< 0",
-                "rbc": "Normal",
-                "pc": "Normal",
-                "pcc": "Not Present",
-                "ba": "Not Present",
-                "bgr": "< 112",
-                "bu": "< 48.1",
-                "sod": "138 - 143",
-                "sc": "< 3.65",
-                "pot": "< 7.31",
-                "hemo": "13.9 - 15.2",
-                "pcv": "41.3 - 45.2",
-                "rbcc": "5.05 - 5.64",
-                "wbcc": "4980 - 7360",
-                "htn": "No",
-                "dm": "No",
-                "cad": "No",
-                "appet": "Good",
-                "pe": "No",
-                "ane": "No"
+                "age": 48.0,
+                "bp": 80.0,
+                "sg": 1.020,
+                "al": 1.0,
+                "su": 0.0,
+                "rbc": "normal",
+                "pc": "normal",
+                "pcc": "notpresent",
+                "ba": "notpresent",
+                "bgr": 121.0,
+                "bu": 36.0,
+                "sc": 1.2,
+                "sod": 137.0,
+                "pot": 4.4,
+                "hemo": 15.4,
+                "pcv": 44.0,
+                "wbcc": 7800.0,
+                "rbcc": 5.2,
+                "htn": "yes",
+                "dm": "yes",
+                "cad": "no",
+                "appet": "good",
+                "pe": "no",
+                "ane": "no"
             }
         }
     )
@@ -188,29 +208,48 @@ class PatientInputSchema(BaseModel):
 
 class ShapFactor(BaseModel):
     """Individual SHAP explainability contribution factor."""
-    feature: str = Field(..., description="Raw or encoded feature identifier")
+    feature: str = Field(..., description="Raw feature identifier (e.g. 'hemo', 'htn')")
+    encoded_feature: str = Field(
+        ...,
+        alias="encodedFeature",
+        serialization_alias="encoded_feature",
+        description="Transformed column name seen by the model (e.g. 'num__hemo', 'cat__htn_yes')"
+    )
     display_feature: str = Field(
         ...,
         alias="displayFeature",
         serialization_alias="display_feature",
-        description="Human-readable feature name with value"
+        description="Human-readable feature name with observed value and unit"
     )
     value: Union[str, float, int] = Field(..., description="Observed input value")
+    unit: str = Field("", description="Measurement unit (e.g. 'g/dL', 'mg/dL', 'mm Hg')")
     shap_value: float = Field(
         ...,
         alias="shapValue",
         serialization_alias="shap_value",
-        description="SHAP impact score (log-odds contribution)"
+        description="SHAP impact score (contribution toward positive class)"
     )
     direction: Literal["increasing", "decreasing"] = Field(
         ...,
-        description="'increasing' pushes toward CKD, 'decreasing' pushes toward Not CKD"
+        description="'increasing' pushes toward higher CKD prediction, 'decreasing' pushes toward lower CKD prediction"
     )
-    category: Literal["Kidney", "Blood", "Symptom", "Demographic"] = Field(
+    category: Literal["Demographic", "Kidney", "Blood", "Symptom"] = Field(
         ...,
         description="Clinical domain category of the feature"
     )
-    description: Optional[str] = Field(None, description="Clinical interpretation of the factor's impact")
+    plain_explanation: str = Field(
+        ...,
+        alias="plainExplanation",
+        serialization_alias="plain_explanation",
+        description="Simple, non-medical explanation of the factor's contribution"
+    )
+    medical_explanation: str = Field(
+        ...,
+        alias="medicalExplanation",
+        serialization_alias="medical_explanation",
+        description="Concise technical/pathophysiological rationale for academic understanding"
+    )
+    description: Optional[str] = Field(None, description="Short summary description")
 
     model_config = ConfigDict(populate_by_name=True)
 
@@ -224,7 +263,7 @@ class FeatureImportance(BaseModel):
         serialization_alias="display_feature",
         description="Feature display label"
     )
-    importance: float = Field(..., description="Mean absolute SHAP value or coefficient magnitude")
+    importance: float = Field(..., description="Mean absolute SHAP value or importance score")
     rank: int = Field(..., description="Importance ranking order")
     description: str = Field(..., description="Clinical importance description")
 
@@ -233,7 +272,7 @@ class FeatureImportance(BaseModel):
 
 class PredictionResponse(BaseModel):
     """Prediction outcome and comprehensive XAI report."""
-    prediction: Literal["CKD", "NOT CKD"] = Field(..., description="Predicted diagnosis classification")
+    prediction: Literal["CKD", "NOT CKD"] = Field(..., description="Predicted classification")
     probability: float = Field(..., description="Predicted probability percentage for CKD (0.00 - 100.00 %)")
     not_ckd_probability: float = Field(
         ...,
@@ -245,16 +284,16 @@ class PredictionResponse(BaseModel):
         ...,
         alias="riskLevel",
         serialization_alias="risk_level",
-        description="Stratified clinical risk category based on prediction probability"
+        description="Stratified probability category"
     )
     model_name: str = Field(
-        default="Logistic Regression (XAI-Enabled)",
+        default="Decision Tree (UCI 336)",
         alias="modelName",
         serialization_alias="model_name",
         description="Classifier architecture name"
     )
     explainability_method: str = Field(
-        default="SHAP (SHapley Additive exPlanations)",
+        default="Tree SHAP (TreeExplainer)",
         alias="explainabilityMethod",
         serialization_alias="explainability_method",
         description="XAI algorithm utilized for feature attribution"
@@ -267,13 +306,13 @@ class PredictionResponse(BaseModel):
         default_factory=list,
         alias="increasingFactors",
         serialization_alias="increasing_factors",
-        description="Features that increase the predicted risk of Chronic Kidney Disease"
+        description="Features that pushed the model toward a higher CKD prediction"
     )
     decreasing_factors: List[ShapFactor] = Field(
         default_factory=list,
         alias="decreasingFactors",
         serialization_alias="decreasing_factors",
-        description="Features that reduce the risk (protective factors towards Not CKD)"
+        description="Features that pushed the model toward a lower CKD prediction"
     )
     all_factors: List[ShapFactor] = Field(
         default_factory=list,
@@ -318,21 +357,27 @@ class HealthResponse(BaseModel):
 
 class ModelInfoResponse(BaseModel):
     """Detailed metadata and evaluation metrics for the trained model."""
+    project: str = Field("RenalInsight", description="Project name")
+    dataset: str = Field("UCI 336 Chronic Kidney Disease", description="Dataset identifier")
     model_type: str = Field(..., alias="modelType", serialization_alias="model_type")
-    target: str
-    positive_class: str = Field(..., alias="positiveClass", serialization_alias="positive_class")
-    negative_class: str = Field(..., alias="negativeClass", serialization_alias="negative_class")
+    model_key: str = Field("dtree", alias="modelKey", serialization_alias="model_key")
+    target: str = Field("class")
+    positive_class: str = Field("CKD", alias="positiveClass", serialization_alias="positive_class")
+    negative_class: str = Field("Not CKD", alias="negativeClass", serialization_alias="negative_class")
     dataset_rows: int = Field(..., alias="datasetRows", serialization_alias="dataset_rows")
     dataset_features: int = Field(..., alias="datasetFeatures", serialization_alias="dataset_features")
-    cv_roc_auc: float = Field(..., alias="cvRocAuc", serialization_alias="cv_roc_auc")
     test_accuracy: float = Field(..., alias="testAccuracy", serialization_alias="test_accuracy")
     test_precision: float = Field(..., alias="testPrecision", serialization_alias="test_precision")
     test_recall: float = Field(..., alias="testRecall", serialization_alias="test_recall")
+    test_specificity: float = Field(1.0, alias="testSpecificity", serialization_alias="test_specificity")
     test_f1: float = Field(..., alias="testF1", serialization_alias="test_f1")
-    shap_enabled: bool = Field(..., alias="shapEnabled", serialization_alias="shap_enabled")
+    test_roc_auc: float = Field(..., alias="testRocAuc", serialization_alias="test_roc_auc")
+    shap_enabled: bool = Field(True, alias="shapEnabled", serialization_alias="shap_enabled")
     input_feature_count: int = Field(..., alias="inputFeatureCount", serialization_alias="input_feature_count")
     input_features: List[str] = Field(..., alias="inputFeatures", serialization_alias="input_features")
-    encoded_feature_count: int = Field(..., alias="encodedFeatureCount", serialization_alias="encoded_feature_count")
+    numeric_features: List[str] = Field(..., alias="numericFeatures", serialization_alias="numeric_features")
+    categorical_features: List[str] = Field(..., alias="categoricalFeatures", serialization_alias="categorical_features")
+    transformed_feature_count: int = Field(..., alias="encodedFeatureCount", serialization_alias="encoded_feature_count")
 
     model_config = ConfigDict(populate_by_name=True)
 

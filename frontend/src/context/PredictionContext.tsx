@@ -60,8 +60,28 @@ export const PredictionProvider: React.FC<{ children: ReactNode }> = ({ children
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.bp_diastolic || formData.bp_diastolic < 40 || formData.bp_diastolic > 200) {
-      newErrors.bp_diastolic = 'Diastolic blood pressure must be between 40 and 200 mmHg';
+    if (formData.age === undefined || formData.age < 1 || formData.age > 120) {
+      newErrors.age = 'Age must be between 1 and 120 years';
+    }
+
+    if (formData.bp === undefined || formData.bp < 40 || formData.bp > 250) {
+      newErrors.bp = 'Blood pressure must be between 40 and 250 mm Hg';
+    }
+
+    if (formData.bgr === undefined || formData.bgr < 30 || formData.bgr > 600) {
+      newErrors.bgr = 'Blood glucose must be between 30 and 600 mg/dL';
+    }
+
+    if (formData.bu === undefined || formData.bu < 1 || formData.bu > 500) {
+      newErrors.bu = 'Blood urea must be between 1 and 500 mg/dL';
+    }
+
+    if (formData.sc === undefined || formData.sc < 0.1 || formData.sc > 50) {
+      newErrors.sc = 'Serum creatinine must be between 0.1 and 50 mg/dL';
+    }
+
+    if (formData.hemo === undefined || formData.hemo < 2 || formData.hemo > 25) {
+      newErrors.hemo = 'Hemoglobin must be between 2 and 25 g/dL';
     }
 
     setErrors(newErrors);
