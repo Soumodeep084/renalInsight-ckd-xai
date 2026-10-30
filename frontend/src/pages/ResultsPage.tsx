@@ -105,7 +105,7 @@ export const ResultsPage: React.FC = () => {
       />
 
       {/* Global Feature Importance */}
-      <FeatureImportanceChart data={result.globalFeatureImportance} />
+      {/* <FeatureImportanceChart data={result.globalFeatureImportance} /> */}
 
       {/* Submitted Patient Summary */}
       <PatientSummary

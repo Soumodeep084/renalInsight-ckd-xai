@@ -38,7 +38,7 @@ export const PredictionCard: React.FC<PredictionCardProps> = ({ result }) => {
 
       {/* Main Content Body */}
       <div className="p-6 sm:p-8 space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
           {/* Prediction Status Box */}
           <div className={`p-6 rounded-2xl border ${badgeStyle.bg} ${badgeStyle.border} text-center space-y-2 relative overflow-hidden`}>
             <span className="text-xs font-bold uppercase tracking-wider text-slate-500 block">
@@ -62,7 +62,7 @@ export const PredictionCard: React.FC<PredictionCardProps> = ({ result }) => {
           </div>
 
           {/* Probability Stat */}
-          <div className="p-6 bg-slate-50 border border-slate-200/90 rounded-2xl text-center space-y-1">
+          {/* <div className="p-6 bg-slate-50 border border-slate-200/90 rounded-2xl text-center space-y-1">
             <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
               CKD Probability
             </span>
@@ -72,7 +72,7 @@ export const PredictionCard: React.FC<PredictionCardProps> = ({ result }) => {
             <p className="text-xs text-slate-500 font-medium">
               Not CKD: {formatPercentage(result.notCkdProbability)}
             </p>
-          </div>
+          </div> */}
 
           {/* Risk Level Spectrum */}
           <div className="p-6 bg-slate-50 border border-slate-200/90 rounded-2xl space-y-3">
